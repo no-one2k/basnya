@@ -1,0 +1,55 @@
+import os
+import pandas as pd
+import time
+from nba_api.stats.endpoints import leaguegamefinder
+from nba_api.stats.endpoints import boxscoresummaryv2, playbyplayv2
+files = os.listdir('boxscore')
+while 'bs' in files[0]:
+    a = files[0][2:-4]
+    files.pop(0)
+    files.append(a)
+season_2122 = leaguegamefinder.LeagueGameFinder(season_nullable='2021-22')
+season = season_2122.get_data_frames()[0]
+a = []
+for i in season['GAME_ID']:
+    a.append(i)
+a = list(set(a))
+print(len(a))
+for i in files:
+    a.remove(i)
+print(len(a))
+# for i in season['GAME_ID']:
+#     if i not in files:
+#         print(i)
+#         playbyplay = playbyplayv2.PlayByPlayV2(game_id=i).get_data_frames()[0]
+#         time.sleep(0.5)
+#         boxscore = boxscoresummaryv2.BoxScoreSummaryV2(game_id=i).get_data_frames()[0]
+#         df = pd.DataFrame(playbyplay)
+#         df.to_csv(f'playbyplay/pbp{i}.csv', index=False)
+#         df = pd.DataFrame(boxscore)
+#         df.to_csv(f'boxscore/bs{i}.csv', index=False)
+#     files.append(i)
+
+# for i in a:
+#     if i not in files:
+#         print(i)
+#         playbyplay = playbyplayv2.PlayByPlayV2(game_id=i).get_data_frames()[0]
+#         time.sleep(0.1)
+#         boxscore = boxscoresummaryv2.BoxScoreSummaryV2(game_id=i).get_data_frames()[0]
+#         time.sleep(0.1)
+#         df = pd.DataFrame(playbyplay)
+#         df.to_csv(f'playbyplay/pbp{i}.csv', index=False)
+#         df = pd.DataFrame(boxscore)
+#         df.to_csv(f'boxscore/bs{i}.csv', index=False)
+#     files.append(i)
+
+for i in a:
+    print(i)
+    playbyplay = playbyplayv2.PlayByPlayV2(game_id=i).get_data_frames()[0]
+    time.sleep(0.1)
+    boxscore = boxscoresummaryv2.BoxScoreSummaryV2(game_id=i).get_data_frames()[0]
+    time.sleep(0.1)
+    df = pd.DataFrame(playbyplay)
+    df.to_csv(f'playbyplay/pbp{i}.csv', index=False)
+    df = pd.DataFrame(boxscore)
+    df.to_csv(f'boxscore/bs{i}.csv', index=False)
