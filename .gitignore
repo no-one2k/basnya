@@ -3,7 +3,7 @@ __pycache__/
 *.py[cod]
 *$py.class
 *.env
-
+/basnya/data/season_21-22 
 # C extensions
 *.so
 

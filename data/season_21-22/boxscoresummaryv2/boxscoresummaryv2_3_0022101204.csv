@@ -1,0 +1,10 @@
+PLAYER_ID,FIRST_NAME,LAST_NAME,JERSEY_NUM,TEAM_ID,TEAM_CITY,TEAM_NAME,TEAM_ABBREVIATION
+203457,Nerlens,Noel,3   ,1610612752,New York,Knicks,NYK
+203944,Julius,Randle,30  ,1610612752,New York,Knicks,NYK
+1629629,Cam,Reddish,21  ,1610612752,New York,Knicks,NYK
+202689,Kemba,Walker,8   ,1610612752,New York,Knicks,NYK
+201565,Derrick,Rose,4   ,1610612752,New York,Knicks,NYK
+203484,Kentavious,Caldwell-Pope,1   ,1610612764,Washington,Wizards,WAS
+1628398,Kyle,Kuzma,33  ,1610612764,Washington,Wizards,WAS
+204001,Kristaps,Porzingis,6   ,1610612764,Washington,Wizards,WAS
+203078,Bradley,Beal,3   ,1610612764,Washington,Wizards,WAS

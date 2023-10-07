@@ -1,0 +1,9 @@
+PLAYER_ID,FIRST_NAME,LAST_NAME,JERSEY_NUM,TEAM_ID,TEAM_CITY,TEAM_NAME,TEAM_ABBREVIATION
+1628978,Donte,DiVincenzo,0   ,1610612749,Milwaukee,Bucks,MIL
+203507,Giannis,Antetokounmpo,34  ,1610612749,Milwaukee,Bucks,MIL
+203114,Khris,Middleton,22  ,1610612749,Milwaukee,Bucks,MIL
+201572,Brook,Lopez,11  ,1610612749,Milwaukee,Bucks,MIL
+1627759,Jaylen,Brown,7   ,1610612738,Boston,Celtics,BOS
+1628981,Bruno,Fernando,28  ,1610612738,Boston,Celtics,BOS
+1630271,Brodric,Thomas,97  ,1610612738,Boston,Celtics,BOS
+1630573,Sam,Hauser,30  ,1610612738,Boston,Celtics,BOS

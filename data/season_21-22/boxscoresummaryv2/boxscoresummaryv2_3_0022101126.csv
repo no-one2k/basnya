@@ -1,0 +1,11 @@
+PLAYER_ID,FIRST_NAME,LAST_NAME,JERSEY_NUM,TEAM_ID,TEAM_CITY,TEAM_NAME,TEAM_ABBREVIATION
+1628366,Lonzo,Ball,2   ,1610612741,Chicago,Bulls,CHI
+1629076,Tyler,Cook,25  ,1610612741,Chicago,Bulls,CHI
+1630792,Malcolm,Hill,14  ,1610612741,Chicago,Bulls,CHI
+1630250,Marko,Simonovic,19  ,1610612741,Chicago,Bulls,CHI
+202689,Kemba,Walker,8   ,1610612752,New York,Knicks,NYK
+203457,Nerlens,Noel,3   ,1610612752,New York,Knicks,NYK
+1629629,Cam,Reddish,21  ,1610612752,New York,Knicks,NYK
+1630624,Feron,Hunt,16  ,1610612752,New York,Knicks,NYK
+1629656,Quentin,Grimes,6   ,1610612752,New York,Knicks,NYK
+201565,Derrick,Rose,4   ,1610612752,New York,Knicks,NYK

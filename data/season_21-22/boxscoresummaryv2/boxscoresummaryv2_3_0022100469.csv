@@ -1,0 +1,11 @@
+PLAYER_ID,FIRST_NAME,LAST_NAME,JERSEY_NUM,TEAM_ID,TEAM_CITY,TEAM_NAME,TEAM_ABBREVIATION
+203076,Anthony,Davis,3   ,1610612747,Los Angeles,Lakers,LAL
+202340,Avery,Bradley,20  ,1610612747,Los Angeles,Lakers,LAL
+1630559,Austin,Reaves,15  ,1610612747,Los Angeles,Lakers,LAL
+1629134,Kendrick,Nunn,12  ,1610612747,Los Angeles,Lakers,LAL
+1628370,Malik,Monk,11  ,1610612747,Los Angeles,Lakers,LAL
+203145,Kent,Bazemore,9   ,1610612747,Los Angeles,Lakers,LAL
+1626163,Frank,Kaminsky,8   ,1610612756,Phoenix,Suns,PHX
+1628990,Chandler,Hutchison,35  ,1610612756,Phoenix,Suns,PHX
+203967,Dario,Saric,20  ,1610612756,Phoenix,Suns,PHX
+1627846,Abdel,Nader,11  ,1610612756,Phoenix,Suns,PHX

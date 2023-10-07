@@ -1,0 +1,9 @@
+PLAYER_ID,FIRST_NAME,LAST_NAME,JERSEY_NUM,TEAM_ID,TEAM_CITY,TEAM_NAME,TEAM_ABBREVIATION
+1628371,Jonathan,Isaac,1   ,1610612753,Orlando,Magic,ORL
+202734,E'Twaun,Moore,55  ,1610612753,Orlando,Magic,ORL
+1628365,Markelle,Fultz,20  ,1610612753,Orlando,Magic,ORL
+1630181,R.J.,Hampton,13  ,1610612753,Orlando,Magic,ORL
+203487,Michael,Carter-Williams,7   ,1610612753,Orlando,Magic,ORL
+1628425,Sterling,Brown,0   ,1610612742,Dallas,Mavericks,DAL
+203501,Tim,Hardaway Jr.,11  ,1610612742,Dallas,Mavericks,DAL
+204001,Kristaps,Porzingis,6   ,1610612742,Dallas,Mavericks,DAL

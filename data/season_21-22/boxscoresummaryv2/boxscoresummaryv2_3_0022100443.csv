@@ -1,0 +1,12 @@
+PLAYER_ID,FIRST_NAME,LAST_NAME,JERSEY_NUM,TEAM_ID,TEAM_CITY,TEAM_NAME,TEAM_ABBREVIATION
+201609,Goran,Dragic,1   ,1610612761,Toronto,Raptors,TOR
+1630625,Dalano,Banton,45  ,1610612761,Toronto,Raptors,TOR
+1627783,Pascal,Siakam,43  ,1610612761,Toronto,Raptors,TOR
+203920,Khem,Birch,24  ,1610612761,Toronto,Raptors,TOR
+1630525,David,Johnson,13  ,1610612761,Toronto,Raptors,TOR
+1629673,Jordan,Poole,3   ,1610612744,Golden State,Warriors,GSW
+1630164,James,Wiseman,33  ,1610612744,Golden State,Warriors,GSW
+203490,Otto,Porter Jr.,32  ,1610612744,Golden State,Warriors,GSW
+201939,Stephen,Curry,30  ,1610612744,Golden State,Warriors,GSW
+203110,Draymond,Green,23  ,1610612744,Golden State,Warriors,GSW
+202691,Klay,Thompson,11  ,1610612744,Golden State,Warriors,GSW

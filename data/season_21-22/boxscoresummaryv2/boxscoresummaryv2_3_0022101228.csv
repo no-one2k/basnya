@@ -1,0 +1,12 @@
+PLAYER_ID,FIRST_NAME,LAST_NAME,JERSEY_NUM,TEAM_ID,TEAM_CITY,TEAM_NAME,TEAM_ABBREVIATION
+201935,James,Harden,1   ,1610612755,Philadelphia,76ers,PHI
+1627777,Georges,Niang,20  ,1610612755,Philadelphia,76ers,PHI
+1629718,Charlie,Brown Jr.,16  ,1610612755,Philadelphia,76ers,PHI
+1630531,Jaden,Springer,11  ,1610612755,Philadelphia,76ers,PHI
+200794,Paul,Millsap,8   ,1610612755,Philadelphia,76ers,PHI
+1629619,Myles,Powell,5   ,1610612755,Philadelphia,76ers,PHI
+1630595,Cade,Cunningham,2   ,1610612765,Detroit,Pistons,DET
+1628963,Marvin,Bagley III,35  ,1610612765,Detroit,Pistons,DET
+202709,Cory,Joseph,18  ,1610612765,Detroit,Pistons,DET
+203924,Jerami,Grant,9   ,1610612765,Detroit,Pistons,DET
+1628977,Hamidou,Diallo,6   ,1610612765,Detroit,Pistons,DET

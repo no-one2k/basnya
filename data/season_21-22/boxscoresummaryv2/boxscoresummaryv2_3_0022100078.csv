@@ -1,0 +1,11 @@
+PLAYER_ID,FIRST_NAME,LAST_NAME,JERSEY_NUM,TEAM_ID,TEAM_CITY,TEAM_NAME,TEAM_ABBREVIATION
+1630573,Sam,Hauser,30  ,1610612738,Boston,Celtics,BOS
+1628981,Bruno,Fernando,28  ,1610612738,Boston,Celtics,BOS
+1629057,Robert,Williams III,44  ,1610612738,Boston,Celtics,BOS
+203935,Marcus,Smart,36  ,1610612738,Boston,Celtics,BOS
+1630271,Brodric,Thomas,33  ,1610612738,Boston,Celtics,BOS
+1630216,Cassius,Winston,5   ,1610612764,Washington,Wizards,WAS
+1629655,Daniel,Gafford,21  ,1610612764,Washington,Wizards,WAS
+1630264,Anthony,Gill,16  ,1610612764,Washington,Wizards,WAS
+1628418,Thomas,Bryant,13  ,1610612764,Washington,Wizards,WAS
+1629060,Rui,Hachimura,8   ,1610612764,Washington,Wizards,WAS

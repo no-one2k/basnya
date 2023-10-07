@@ -1,0 +1,11 @@
+PLAYER_ID,FIRST_NAME,LAST_NAME,JERSEY_NUM,TEAM_ID,TEAM_CITY,TEAM_NAME,TEAM_ABBREVIATION
+201587,Nicolas,Batum,33  ,1610612746,LA,Clippers,LAC
+202695,Kawhi,Leonard,2   ,1610612746,LA,Clippers,LAC
+1630554,Jason,Preston,17  ,1610612746,LA,Clippers,LAC
+1628392,Isaiah,Hartenstein,55  ,1610612746,LA,Clippers,LAC
+1627826,Ivica,Zubac,40  ,1610612746,LA,Clippers,LAC
+202331,Paul,George,13  ,1610612746,LA,Clippers,LAC
+1630527,Brandon,Boston Jr.,4   ,1610612746,LA,Clippers,LAC
+1630593,McKinley,Wright IV,25  ,1610612750,Minnesota,Timberwolves,MIN
+1626157,Karl-Anthony,Towns,32  ,1610612750,Minnesota,Timberwolves,MIN
+1626156,D'Angelo,Russell,0   ,1610612750,Minnesota,Timberwolves,MIN

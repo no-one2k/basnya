@@ -1,0 +1,9 @@
+PLAYER_ID,FIRST_NAME,LAST_NAME,JERSEY_NUM,TEAM_ID,TEAM_CITY,TEAM_NAME,TEAM_ABBREVIATION
+1630346,Matt,Ryan,37  ,1610612738,Boston,Celtics,BOS
+1630238,Malik,Fitts,8   ,1610612738,Boston,Celtics,BOS
+1630271,Brodric,Thomas,97  ,1610612738,Boston,Celtics,BOS
+203917,Nik,Stauskas,13  ,1610612738,Boston,Celtics,BOS
+201143,Al,Horford,42  ,1610612738,Boston,Celtics,BOS
+1630183,Jaden,McDaniels,3   ,1610612750,Minnesota,Timberwolves,MIN
+1627736,Malik,Beasley,5   ,1610612750,Minnesota,Timberwolves,MIN
+1630593,McKinley,Wright IV,25  ,1610612750,Minnesota,Timberwolves,MIN

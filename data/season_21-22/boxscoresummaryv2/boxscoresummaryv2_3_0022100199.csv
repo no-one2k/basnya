@@ -1,0 +1,9 @@
+PLAYER_ID,FIRST_NAME,LAST_NAME,JERSEY_NUM,TEAM_ID,TEAM_CITY,TEAM_NAME,TEAM_ABBREVIATION
+201567,Kevin,Love,0   ,1610612739,Cleveland,Cavaliers,CLE
+1628374,Lauri,Markkanen,24  ,1610612739,Cleveland,Cavaliers,CLE
+1630205,Lamar,Stevens,8   ,1610612739,Cleveland,Cavaliers,CLE
+1630612,RJ,Nembhard,5   ,1610612739,Cleveland,Cavaliers,CLE
+1629012,Collin,Sexton,2   ,1610612739,Cleveland,Cavaliers,CLE
+1627759,Jaylen,Brown,7   ,1610612738,Boston,Celtics,BOS
+1630271,Brodric,Thomas,97  ,1610612738,Boston,Celtics,BOS
+1630573,Sam,Hauser,30  ,1610612738,Boston,Celtics,BOS

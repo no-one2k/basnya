@@ -1,0 +1,9 @@
+PLAYER_ID,FIRST_NAME,LAST_NAME,JERSEY_NUM,TEAM_ID,TEAM_CITY,TEAM_NAME,TEAM_ABBREVIATION
+1630346,Matt,Ryan,37  ,1610612738,Boston,Celtics,BOS
+1630174,Aaron,Nesmith,26  ,1610612738,Boston,Celtics,BOS
+1628436,Luke,Kornet,40  ,1610612738,Boston,Celtics,BOS
+1630271,Brodric,Thomas,97  ,1610612738,Boston,Celtics,BOS
+1630607,Chris,Smith,0   ,1610612765,Detroit,Pistons,DET
+1628977,Hamidou,Diallo,6   ,1610612765,Detroit,Pistons,DET
+1630165,Killian,Hayes,7   ,1610612765,Detroit,Pistons,DET
+1630191,Isaiah,Stewart,28  ,1610612765,Detroit,Pistons,DET

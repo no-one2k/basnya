@@ -1,0 +1,9 @@
+PLAYER_ID,FIRST_NAME,LAST_NAME,JERSEY_NUM,TEAM_ID,TEAM_CITY,TEAM_NAME,TEAM_ABBREVIATION
+200765,Rajon,Rondo,1   ,1610612739,Cleveland,Cavaliers,CLE
+1629731,Dean,Wade,32  ,1610612739,Cleveland,Cavaliers,CLE
+1628386,Jarrett,Allen,31  ,1610612739,Cleveland,Cavaliers,CLE
+1629012,Collin,Sexton,2   ,1610612739,Cleveland,Cavaliers,CLE
+1630222,Mason,Jones,40  ,1610612747,Los Angeles,Lakers,LAL
+1629659,Talen,Horton-Tucker,5   ,1610612747,Los Angeles,Lakers,LAL
+1629134,Kendrick,Nunn,12  ,1610612747,Los Angeles,Lakers,LAL
+203076,Anthony,Davis,3   ,1610612747,Los Angeles,Lakers,LAL

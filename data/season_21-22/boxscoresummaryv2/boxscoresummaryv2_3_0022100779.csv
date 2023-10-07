@@ -1,0 +1,11 @@
+PLAYER_ID,FIRST_NAME,LAST_NAME,JERSEY_NUM,TEAM_ID,TEAM_CITY,TEAM_NAME,TEAM_ABBREVIATION
+204060,Joe,Ingles,2   ,1610612762,Utah,Jazz,UTA
+1628378,Donovan,Mitchell,45  ,1610612762,Utah,Jazz,UTA
+203497,Rudy,Gobert,27  ,1610612762,Utah,Jazz,UTA
+1627863,Danuel,House Jr.,25  ,1610612762,Utah,Jazz,UTA
+1629008,Michael,Porter Jr.,1   ,1610612743,Denver,Nuggets,DEN
+203932,Aaron,Gordon,50  ,1610612743,Denver,Nuggets,DEN
+1628427,Vlatko,Cancar,31  ,1610612743,Denver,Nuggets,DEN
+1627750,Jamal,Murray,27  ,1610612743,Denver,Nuggets,DEN
+203999,Nikola,Jokic,15  ,1610612743,Denver,Nuggets,DEN
+202326,DeMarcus,Cousins,4   ,1610612743,Denver,Nuggets,DEN

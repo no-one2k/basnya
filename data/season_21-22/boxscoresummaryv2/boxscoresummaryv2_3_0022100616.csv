@@ -1,0 +1,15 @@
+PLAYER_ID,FIRST_NAME,LAST_NAME,JERSEY_NUM,TEAM_ID,TEAM_CITY,TEAM_NAME,TEAM_ABBREVIATION
+202695,Kawhi,Leonard,2   ,1610612746,LA,Clippers,LAC
+1628379,Luke,Kennard,5   ,1610612746,LA,Clippers,LAC
+1630554,Jason,Preston,17  ,1610612746,LA,Clippers,LAC
+1626159,Justise,Winslow,20  ,1610612746,LA,Clippers,LAC
+1630553,Keon,Johnson,45  ,1610612746,LA,Clippers,LAC
+1628392,Isaiah,Hartenstein,55  ,1610612746,LA,Clippers,LAC
+202331,Paul,George,13  ,1610612746,LA,Clippers,LAC
+203585,Rodney,McGruder,17  ,1610612743,Denver,Nuggets,DEN
+1629008,Michael,Porter Jr.,1   ,1610612743,Denver,Nuggets,DEN
+1628427,Vlatko,Cancar,31  ,1610612743,Denver,Nuggets,DEN
+203115,Will,Barton,5   ,1610612743,Denver,Nuggets,DEN
+1628408,PJ,Dozier,35  ,1610612743,Denver,Nuggets,DEN
+1630210,Markus,Howard,00  ,1610612743,Denver,Nuggets,DEN
+1627750,Jamal,Murray,27  ,1610612743,Denver,Nuggets,DEN
