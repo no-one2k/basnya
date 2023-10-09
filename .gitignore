@@ -4,6 +4,9 @@ __pycache__/
 *$py.class
 *.env
 
+/scripts
+/playbyplay
+discovery/signal_indicator/resource/boxscoretraditionalv2/*
 # C extensions
 *.so
 
