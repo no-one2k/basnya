@@ -3,10 +3,10 @@ __pycache__/
 *.py[cod]
 *$py.class
 *.env
-/basnya/data/season_21-22 
+**/season_21-22
 # C extensions
 *.so
-
+**/
 # Distribution / packaging
 .Python
 build/
@@ -159,7 +159,7 @@ cython_debug/
 #  and can be added to the global gitignore or merged into this file.  For a more nuclear
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 .idea/
-
+data/season_21-22
 # env file with openai credentials
 /openai.env
 
