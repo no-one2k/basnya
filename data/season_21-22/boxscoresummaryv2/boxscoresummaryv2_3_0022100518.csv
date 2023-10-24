@@ -1,0 +1,17 @@
+PLAYER_ID,FIRST_NAME,LAST_NAME,JERSEY_NUM,TEAM_ID,TEAM_CITY,TEAM_NAME,TEAM_ABBREVIATION
+203935,Marcus,Smart,36  ,1610612738,Boston,Celtics,BOS
+101139,CJ,Miles,50  ,1610612738,Boston,Celtics,BOS
+1628981,Bruno,Fernando,28  ,1610612738,Boston,Celtics,BOS
+1628369,Jayson,Tatum,0   ,1610612738,Boston,Celtics,BOS
+203471,Dennis,Schroder,71  ,1610612738,Boston,Celtics,BOS
+1630174,Aaron,Nesmith,26  ,1610612738,Boston,Celtics,BOS
+202683,Enes,Freedom,13  ,1610612738,Boston,Celtics,BOS
+202695,Kawhi,Leonard,2   ,1610612746,LA,Clippers,LAC
+1630206,Jay,Scrubb,0   ,1610612746,LA,Clippers,LAC
+201587,Nicolas,Batum,33  ,1610612746,LA,Clippers,LAC
+202704,Reggie,Jackson,1   ,1610612746,LA,Clippers,LAC
+1630589,Moses,Wright,11  ,1610612746,LA,Clippers,LAC
+1628392,Isaiah,Hartenstein,55  ,1610612746,LA,Clippers,LAC
+1630527,Brandon,Boston Jr.,4   ,1610612746,LA,Clippers,LAC
+202331,Paul,George,13  ,1610612746,LA,Clippers,LAC
+1630554,Jason,Preston,17  ,1610612746,LA,Clippers,LAC

@@ -1,0 +1,13 @@
+PLAYER_ID,FIRST_NAME,LAST_NAME,JERSEY_NUM,TEAM_ID,TEAM_CITY,TEAM_NAME,TEAM_ABBREVIATION
+203076,Anthony,Davis,3   ,1610612747,Los Angeles,Lakers,LAL
+2546,Carmelo,Anthony,7   ,1610612747,Los Angeles,Lakers,LAL
+1629134,Kendrick,Nunn,12  ,1610612747,Los Angeles,Lakers,LAL
+1630222,Mason,Jones,40  ,1610612747,Los Angeles,Lakers,LAL
+1629635,Sekou,Doumbouya,45  ,1610612747,Los Angeles,Lakers,LAL
+203210,JaMychal,Green,0   ,1610612743,Denver,Nuggets,DEN
+1630210,Markus,Howard,00  ,1610612743,Denver,Nuggets,DEN
+1629008,Michael,Porter Jr.,1   ,1610612743,Denver,Nuggets,DEN
+1629626,Bol,Bol,10  ,1610612743,Denver,Nuggets,DEN
+1627750,Jamal,Murray,27  ,1610612743,Denver,Nuggets,DEN
+1628427,Vlatko,Cancar,31  ,1610612743,Denver,Nuggets,DEN
+1628408,PJ,Dozier,35  ,1610612743,Denver,Nuggets,DEN

@@ -1,0 +1,9 @@
+PLAYER_ID,FIRST_NAME,LAST_NAME,JERSEY_NUM,TEAM_ID,TEAM_CITY,TEAM_NAME,TEAM_ABBREVIATION
+202322,John,Wall,1   ,1610612745,Houston,Rockets,HOU
+1630578,Alperen,Sengun,28  ,1610612745,Houston,Rockets,HOU
+1630243,Trevelin,Queen,21  ,1610612745,Houston,Rockets,HOU
+1630586,Usman,Garuba,16  ,1610612745,Houston,Rockets,HOU
+1629717,Armoni,Brooks,7   ,1610612745,Houston,Rockets,HOU
+1630195,Leandro,Bolmaro,9   ,1610612750,Minnesota,Timberwolves,MIN
+1630593,McKinley,Wright IV,25  ,1610612750,Minnesota,Timberwolves,MIN
+201976,Patrick,Beverley,22  ,1610612750,Minnesota,Timberwolves,MIN

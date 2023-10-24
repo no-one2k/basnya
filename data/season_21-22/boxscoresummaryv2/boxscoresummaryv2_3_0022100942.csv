@@ -1,0 +1,10 @@
+PLAYER_ID,FIRST_NAME,LAST_NAME,JERSEY_NUM,TEAM_ID,TEAM_CITY,TEAM_NAME,TEAM_ABBREVIATION
+1630607,Chris,Smith,0   ,1610612765,Detroit,Pistons,DET
+1630240,Saben,Lee,38  ,1610612765,Detroit,Pistons,DET
+1628963,Marvin,Bagley III,35  ,1610612765,Detroit,Pistons,DET
+1630691,Jamorko,Pickett,24  ,1610612765,Detroit,Pistons,DET
+1628384,O.G.,Anunoby,3   ,1610612761,Toronto,Raptors,TOR
+1627832,Fred,VanVleet,23  ,1610612761,Toronto,Raptors,TOR
+201152,Thaddeus,Young,21  ,1610612761,Toronto,Raptors,TOR
+1630525,David,Johnson,13  ,1610612761,Toronto,Raptors,TOR
+1628391,D.J.,Wilson,9   ,1610612761,Toronto,Raptors,TOR

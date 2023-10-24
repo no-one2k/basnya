@@ -1,0 +1,10 @@
+PLAYER_ID,FIRST_NAME,LAST_NAME,JERSEY_NUM,TEAM_ID,TEAM_CITY,TEAM_NAME,TEAM_ABBREVIATION
+1630257,Jon,Teske,10  ,1610612763,Memphis,Grizzlies,MEM
+1628415,Dillon,Brooks,24  ,1610612763,Memphis,Grizzlies,MEM
+1630582,Yves,Pons,5   ,1610612763,Memphis,Grizzlies,MEM
+1630179,Tyrell,Terry,3   ,1610612763,Memphis,Grizzlies,MEM
+203500,Steven,Adams,4   ,1610612763,Memphis,Grizzlies,MEM
+1630222,Mason,Jones,40  ,1610612747,Los Angeles,Lakers,LAL
+1629134,Kendrick,Nunn,12  ,1610612747,Los Angeles,Lakers,LAL
+203076,Anthony,Davis,3   ,1610612747,Los Angeles,Lakers,LAL
+1630643,Jay,Huff,30  ,1610612747,Los Angeles,Lakers,LAL

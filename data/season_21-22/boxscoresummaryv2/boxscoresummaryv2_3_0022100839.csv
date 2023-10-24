@@ -1,0 +1,12 @@
+PLAYER_ID,FIRST_NAME,LAST_NAME,JERSEY_NUM,TEAM_ID,TEAM_CITY,TEAM_NAME,TEAM_ABBREVIATION
+1629012,Collin,Sexton,2   ,1610612739,Cleveland,Cavaliers,CLE
+1628374,Lauri,Markkanen,24  ,1610612739,Cleveland,Cavaliers,CLE
+1629636,Darius,Garland,10  ,1610612739,Cleveland,Cavaliers,CLE
+1630612,RJ,Nembhard,5   ,1610612739,Cleveland,Cavaliers,CLE
+1629617,Reggie,Perry,0   ,1610612754,Indiana,Pacers,IND
+1626167,Myles,Turner,33  ,1610612754,Indiana,Pacers,IND
+1630678,Terry,Taylor,32  ,1610612754,Indiana,Pacers,IND
+204456,T.J.,McConnell,9   ,1610612754,Indiana,Pacers,IND
+1627763,Malcolm,Brogdon,7   ,1610612754,Indiana,Pacers,IND
+201937,Ricky,Rubio,3   ,1610612754,Indiana,Pacers,IND
+203933,T.J.,Warren,1   ,1610612754,Indiana,Pacers,IND

@@ -1,0 +1,13 @@
+PLAYER_ID,FIRST_NAME,LAST_NAME,JERSEY_NUM,TEAM_ID,TEAM_CITY,TEAM_NAME,TEAM_ABBREVIATION
+203083,Andre,Drummond,1   ,1610612755,Philadelphia,76ers,PHI
+1627732,Ben,Simmons,25  ,1610612755,Philadelphia,76ers,PHI
+1629003,Shake,Milton,18  ,1610612755,Philadelphia,76ers,PHI
+201980,Danny,Green,14  ,1610612755,Philadelphia,76ers,PHI
+201609,Goran,Dragic,1   ,1610612761,Toronto,Raptors,TOR
+1630625,Dalano,Banton,45  ,1610612761,Toronto,Raptors,TOR
+1627832,Fred,VanVleet,23  ,1610612761,Toronto,Raptors,TOR
+1629067,Isaac,Bonga,17  ,1610612761,Toronto,Raptors,TOR
+1630525,David,Johnson,13  ,1610612761,Toronto,Raptors,TOR
+1630551,Justin,Champagnie,11  ,1610612761,Toronto,Raptors,TOR
+1630567,Scottie,Barnes,4   ,1610612761,Toronto,Raptors,TOR
+1628384,O.G.,Anunoby,3   ,1610612761,Toronto,Raptors,TOR

@@ -1,0 +1,9 @@
+PLAYER_ID,FIRST_NAME,LAST_NAME,JERSEY_NUM,TEAM_ID,TEAM_CITY,TEAM_NAME,TEAM_ABBREVIATION
+1630241,Sam,Merrill,25  ,1610612763,Memphis,Grizzlies,MEM
+1630582,Yves,Pons,5   ,1610612763,Memphis,Grizzlies,MEM
+1630533,Ziaire,Williams,8   ,1610612763,Memphis,Grizzlies,MEM
+1629630,Ja,Morant,12  ,1610612763,Memphis,Grizzlies,MEM
+201609,Goran,Dragic,1   ,1610612761,Toronto,Raptors,TOR
+1629018,Gary,Trent Jr.,33  ,1610612761,Toronto,Raptors,TOR
+203920,Khem,Birch,24  ,1610612761,Toronto,Raptors,TOR
+1628384,O.G.,Anunoby,3   ,1610612761,Toronto,Raptors,TOR

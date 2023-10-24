@@ -1,0 +1,13 @@
+PLAYER_ID,FIRST_NAME,LAST_NAME,JERSEY_NUM,TEAM_ID,TEAM_CITY,TEAM_NAME,TEAM_ABBREVIATION
+1628972,Troy,Brown Jr.,7   ,1610612741,Chicago,Bulls,CHI
+1630172,Patrick,Williams,44  ,1610612741,Chicago,Bulls,CHI
+1628993,Alize,Johnson,22  ,1610612741,Chicago,Bulls,CHI
+1629744,Matt,Thomas,21  ,1610612741,Chicago,Bulls,CHI
+1630245,Ayo,Dosunmu,12  ,1610612741,Chicago,Bulls,CHI
+203897,Zach,LaVine,8   ,1610612741,Chicago,Bulls,CHI
+1629659,Talen,Horton-Tucker,5   ,1610612747,Los Angeles,Lakers,LAL
+2730,Dwight,Howard,39  ,1610612747,Los Angeles,Lakers,LAL
+202340,Avery,Bradley,20  ,1610612747,Los Angeles,Lakers,LAL
+1630559,Austin,Reaves,15  ,1610612747,Los Angeles,Lakers,LAL
+1628370,Malik,Monk,11  ,1610612747,Los Angeles,Lakers,LAL
+203145,Kent,Bazemore,9   ,1610612747,Los Angeles,Lakers,LAL

@@ -1,0 +1,8 @@
+PLAYER_ID,FIRST_NAME,LAST_NAME,JERSEY_NUM,TEAM_ID,TEAM_CITY,TEAM_NAME,TEAM_ABBREVIATION
+1630203,Grant,Riller,5   ,1610612755,Philadelphia,76ers,PHI
+1627732,Ben,Simmons,25  ,1610612755,Philadelphia,76ers,PHI
+1629680,Matisse,Thybulle,22  ,1610612755,Philadelphia,76ers,PHI
+1629139,Yuta,Watanabe,18  ,1610612761,Toronto,Raptors,TOR
+1627783,Pascal,Siakam,43  ,1610612761,Toronto,Raptors,TOR
+1628449,Chris,Boucher,25  ,1610612761,Toronto,Raptors,TOR
+203920,Khem,Birch,24  ,1610612761,Toronto,Raptors,TOR

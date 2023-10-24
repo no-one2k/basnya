@@ -1,0 +1,7 @@
+PLAYER_ID,FIRST_NAME,LAST_NAME,JERSEY_NUM,TEAM_ID,TEAM_CITY,TEAM_NAME,TEAM_ABBREVIATION
+1630573,Sam,Hauser,30  ,1610612738,Boston,Celtics,BOS
+1629057,Robert,Williams III,44  ,1610612738,Boston,Celtics,BOS
+203935,Marcus,Smart,36  ,1610612738,Boston,Celtics,BOS
+1629712,Didi,Louzada,0   ,1610612740,New Orleans,Pelicans,NOP
+1630184,Kira,Lewis Jr.,13  ,1610612740,New Orleans,Pelicans,NOP
+1629627,Zion,Williamson,1   ,1610612740,New Orleans,Pelicans,NOP

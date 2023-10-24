@@ -1,0 +1,11 @@
+PLAYER_ID,FIRST_NAME,LAST_NAME,JERSEY_NUM,TEAM_ID,TEAM_CITY,TEAM_NAME,TEAM_ABBREVIATION
+1630214,Xavier,Tillman,2   ,1610612763,Memphis,Grizzlies,MEM
+1628415,Dillon,Brooks,24  ,1610612763,Memphis,Grizzlies,MEM
+1630582,Yves,Pons,5   ,1610612763,Memphis,Grizzlies,MEM
+1630179,Tyrell,Terry,3   ,1610612763,Memphis,Grizzlies,MEM
+203081,Damian,Lillard,0   ,1610612757,Portland,Trail Blazers,POR
+1629712,Didi,Louzada,35  ,1610612757,Portland,Trail Blazers,POR
+1628372,Dennis,Smith Jr.,10  ,1610612757,Portland,Trail Blazers,POR
+1629642,Nassir,Little,9   ,1610612757,Portland,Trail Blazers,POR
+202339,Eric,Bledsoe,5   ,1610612757,Portland,Trail Blazers,POR
+204060,Joe,Ingles,00  ,1610612757,Portland,Trail Blazers,POR

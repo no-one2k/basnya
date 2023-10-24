@@ -1,0 +1,8 @@
+PLAYER_ID,FIRST_NAME,LAST_NAME,JERSEY_NUM,TEAM_ID,TEAM_CITY,TEAM_NAME,TEAM_ABBREVIATION
+1630346,Matt,Ryan,37  ,1610612738,Boston,Celtics,BOS
+1630271,Brodric,Thomas,97  ,1610612738,Boston,Celtics,BOS
+1627759,Jaylen,Brown,7   ,1610612738,Boston,Celtics,BOS
+1630179,Tyrell,Terry,3   ,1610612763,Memphis,Grizzlies,MEM
+1628415,Dillon,Brooks,24  ,1610612763,Memphis,Grizzlies,MEM
+1630583,Santi,Aldama,7   ,1610612763,Memphis,Grizzlies,MEM
+1630582,Yves,Pons,5   ,1610612763,Memphis,Grizzlies,MEM

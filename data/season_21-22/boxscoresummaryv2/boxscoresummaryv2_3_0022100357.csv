@@ -1,0 +1,12 @@
+PLAYER_ID,FIRST_NAME,LAST_NAME,JERSEY_NUM,TEAM_ID,TEAM_CITY,TEAM_NAME,TEAM_ABBREVIATION
+1629632,Coby,White,0   ,1610612741,Chicago,Bulls,CHI
+1630172,Patrick,Williams,44  ,1610612741,Chicago,Bulls,CHI
+1629750,Javonte,Green,24  ,1610612741,Chicago,Bulls,CHI
+201942,DeMar,DeRozan,11  ,1610612741,Chicago,Bulls,CHI
+1627936,Alex,Caruso,6   ,1610612741,Chicago,Bulls,CHI
+1629008,Michael,Porter Jr.,1   ,1610612743,Denver,Nuggets,DEN
+1628408,PJ,Dozier,35  ,1610612743,Denver,Nuggets,DEN
+1627750,Jamal,Murray,27  ,1610612743,Denver,Nuggets,DEN
+203085,Austin,Rivers,25  ,1610612743,Denver,Nuggets,DEN
+1629626,Bol,Bol,10  ,1610612743,Denver,Nuggets,DEN
+1630538,Bones,Hyland,3   ,1610612743,Denver,Nuggets,DEN

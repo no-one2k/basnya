@@ -1,0 +1,10 @@
+PLAYER_ID,FIRST_NAME,LAST_NAME,JERSEY_NUM,TEAM_ID,TEAM_CITY,TEAM_NAME,TEAM_ABBREVIATION
+203937,Kyle,Anderson,1   ,1610612763,Memphis,Grizzlies,MEM
+1628415,Dillon,Brooks,24  ,1610612763,Memphis,Grizzlies,MEM
+1630217,Desmond,Bane,22  ,1610612763,Memphis,Grizzlies,MEM
+1626145,Tyus,Jones,21  ,1610612763,Memphis,Grizzlies,MEM
+1630179,Tyrell,Terry,3   ,1610612763,Memphis,Grizzlies,MEM
+203210,JaMychal,Green,0   ,1610612743,Denver,Nuggets,DEN
+1628427,Vlatko,Cancar,31  ,1610612743,Denver,Nuggets,DEN
+1627750,Jamal,Murray,27  ,1610612743,Denver,Nuggets,DEN
+1629008,Michael,Porter Jr.,1   ,1610612743,Denver,Nuggets,DEN

@@ -1,0 +1,10 @@
+PLAYER_ID,FIRST_NAME,LAST_NAME,JERSEY_NUM,TEAM_ID,TEAM_CITY,TEAM_NAME,TEAM_ABBREVIATION
+202322,John,Wall,1   ,1610612745,Houston,Rockets,HOU
+1630586,Usman,Garuba,16  ,1610612745,Houston,Rockets,HOU
+1630227,Daishen,Nix,15  ,1610612745,Houston,Rockets,HOU
+1630243,Trevelin,Queen,21  ,1610612745,Houston,Rockets,HOU
+1630164,James,Wiseman,33  ,1610612744,Golden State,Warriors,GSW
+2738,Andre,Iguodala,9   ,1610612744,Golden State,Warriors,GSW
+1629683,Quinndary,Weatherspoon,12  ,1610612744,Golden State,Warriors,GSW
+202691,Klay,Thompson,11  ,1610612744,Golden State,Warriors,GSW
+203110,Draymond,Green,23  ,1610612744,Golden State,Warriors,GSW

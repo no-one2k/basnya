@@ -1,0 +1,12 @@
+PLAYER_ID,FIRST_NAME,LAST_NAME,JERSEY_NUM,TEAM_ID,TEAM_CITY,TEAM_NAME,TEAM_ABBREVIATION
+203933,T.J.,Warren,1   ,1610612754,Indiana,Pacers,IND
+1626167,Myles,Turner,33  ,1610612754,Indiana,Pacers,IND
+1630543,Isaiah,Jackson,23  ,1610612754,Indiana,Pacers,IND
+204456,T.J.,McConnell,9   ,1610612754,Indiana,Pacers,IND
+1627763,Malcolm,Brogdon,7   ,1610612754,Indiana,Pacers,IND
+201937,Ricky,Rubio,99  ,1610612754,Indiana,Pacers,IND
+203078,Bradley,Beal,3   ,1610612764,Washington,Wizards,WAS
+1629655,Daniel,Gafford,21  ,1610612764,Washington,Wizards,WAS
+1630555,Joel,Ayayi,17  ,1610612764,Washington,Wizards,WAS
+1629060,Rui,Hachimura,8   ,1610612764,Washington,Wizards,WAS
+204001,Kristaps,Porzingis,6   ,1610612764,Washington,Wizards,WAS

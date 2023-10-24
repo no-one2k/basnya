@@ -1,0 +1,12 @@
+PLAYER_ID,FIRST_NAME,LAST_NAME,JERSEY_NUM,TEAM_ID,TEAM_CITY,TEAM_NAME,TEAM_ABBREVIATION
+201566,Russell,Westbrook,0   ,1610612747,Los Angeles,Lakers,LAL
+1629134,Kendrick,Nunn,12  ,1610612747,Los Angeles,Lakers,LAL
+2546,Carmelo,Anthony,7   ,1610612747,Los Angeles,Lakers,LAL
+2544,LeBron,James,6   ,1610612747,Los Angeles,Lakers,LAL
+203076,Anthony,Davis,3   ,1610612747,Los Angeles,Lakers,LAL
+1629008,Michael,Porter Jr.,1   ,1610612743,Denver,Nuggets,DEN
+203932,Aaron,Gordon,50  ,1610612743,Denver,Nuggets,DEN
+1627750,Jamal,Murray,27  ,1610612743,Denver,Nuggets,DEN
+203999,Nikola,Jokic,15  ,1610612743,Denver,Nuggets,DEN
+1628420,Monte,Morris,11  ,1610612743,Denver,Nuggets,DEN
+203115,Will,Barton,5   ,1610612743,Denver,Nuggets,DEN
