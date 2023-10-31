@@ -102,11 +102,14 @@ class StrategyRating(Strategy):
 
         # получим N лучших игроков
         old_rating_N = {indicator: value.iloc[:top] for indicator, value in self.old_rating.items()}
-        new_rating_N = {indicator: value.iloc[:top] for indicator, value in self.new_rating.items()}
-        
         old_top = {col: set(old_rating_N[col]['PLAYER_ID'].to_list()) for col in old_rating_N.keys()}
-        new_top = {col: set(new_rating_N [col]['PLAYER_ID'].to_list()) for col in new_rating_N.keys()}
-            
+        
+        if new_rating_N:
+            new_rating_N = {indicator: value.iloc[:top] for indicator, value in self.new_rating.items()}
+            new_top = {col: set(new_rating_N [col]['PLAYER_ID'].to_list()) for col in new_rating_N.keys()}
+        else:
+           new_top = {col: set(new_rating_N [col]['PLAYER_ID'].to_list()) for col in new_rating_N.keys()} 
+
        
         for col in self.calculus_columns:
                 in_top =  new_top[col] - old_top[col]
