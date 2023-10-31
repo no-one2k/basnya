@@ -154,5 +154,5 @@ class StatsHolder:
         for strategy in self.strategies.values():
             # Добавить в стратегию новый рейтинг игроков
             strategy.add_record_in_strategy(self.players_stats)
-            logger.info(strategy.show_data_strategy())
+           # logger.info(strategy.show_data_strategy())
         
