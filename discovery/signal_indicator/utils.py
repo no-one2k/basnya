@@ -8,11 +8,14 @@ import os
 import re
 import logging
 from abc import ABC, abstractmethod
+from copy import deepcopy 
+from pprint import pprint 
 
 from dotenv import load_dotenv
 import openai
 from tqdm import tqdm
 import pandas as pd
+import sqlite3
 
 from strategies import Strategy
 
@@ -49,22 +52,6 @@ def min_to_second(string: str):
             return minutes+seconds
     else:
         return 0
-    
-    
-def get_file_list(path_docs: str) -> List[str]:
-    """
-    Получитьл список всех файлов в папке
-    
-    Аргументы:
-        path_docs - путь до папки с исходниками для рассчёта статистики  
-    Возвращает:
-        список путей исходников
-    """
-    
-    path = Path(path_docs)
-    parent =  path.parent
-    name = path.name
-    return [parent/name/path for path in os.listdir(path)]
 
 
 class StatsHolder:
@@ -78,14 +65,16 @@ class StatsHolder:
                               'FT_PCT','OREB','DREB','REB','AST','STL','BLK','TO','PF','PTS']
     labels_columns: list = ['PLAYER_ID', 'GAME_ID']
     
-    def __init__(self, players_stats: Dict[int, List[pd.Series]]):
+    def __init__(self, players_stats: Dict[int, List[pd.Series]], all_data: pd.DataFrame):
         """
         Аргументы:
             players_stats - статистика по игрокам. Ключи - индексы игроков, 
                             значения - сисок статистики по игроку за все указанные игры
+            all_data - данные обо всех матчах (в формате boxscoretraditionalv2_0)
         """
         
         self.players_stats: Dict[int, List[pd.Series]] = players_stats # статистика по игрокам
+        self.all_data = all_data
         self.strategies = {} # словарь, содержащий все стратегии для отслеживания сигнальных показателей
     
     def add_strategy(self, strategy):
@@ -93,66 +82,102 @@ class StatsHolder:
         Добавить стратегию для отслеживания сигнальных показателей
         """
         
-        # obj_strategy = strategy(players_stats=self.players_stats, calculus_columns=self.calculus_columns)
-        # self.strategies[obj_strategy.title] = obj_strategy
-        # logger.info(f'Added "{obj_strategy.title}" strategy')
         self.strategies[strategy.title] = strategy
         logger.info(f'Added "{strategy.title}" strategy')
     
-        
-    
     def show_strategies(self):
         return [strategy  for strategy in  self.strategies]
-    
-    @classmethod
-    def from_csv(cls, path_docs: str) -> 'StatsHolder':
-        """ 
-        Создание объекта StatsHolder из списка файлов со статистикой формата .csv
-        """
-       
-        file_list = get_file_list(path_docs)[:100]
-        players_stats = defaultdict(list)
         
-        for path in tqdm(file_list, total=len(file_list)):
-            df = pd.read_csv(path).fillna(0)
-            
-            if 'PLAYER_ID' not in df.columns:
-                continue
-            
-            df['MIN'] = df['MIN'].apply(min_to_second)
-            df[cls.calculus_columns] =df[cls.calculus_columns].fillna(0).astype(int)
-            for index, row in df.iterrows():
+    @classmethod
+    def from_sql(cls, db_path: str=r'../../data/basnya.db') -> 'StatsHolder':
+        """
+        Создание объекта StatsHolder из бд SQlite
+        
+        Аргументы:
+            db_path - путь до локаьной базы SQlite
+        """
+        conn = sqlite3.connect(db_path)
+        df = pd.read_sql_query("SELECT * FROM boxscoretraditionalv2_0", conn)
+        conn.close()
+
+        players_stats = defaultdict(list)
+        for game_id in tqdm(df.GAME_ID.unique(), total = len(df.GAME_ID.unique())):
+            game = df.query("""GAME_ID==@game_id""")
+            game.loc[:, 'MIN'] = game['MIN'].apply(min_to_second)
+            game.loc[:, cls.calculus_columns] = game[cls.calculus_columns].fillna(0).astype(int)
+            for index, row in game.iterrows():
                 players_stats[row.PLAYER_ID].append(row[cls.target_columns])
                 
-        return cls(players_stats=players_stats)
-        
-        
-    def add_record(self, record: pd.DataFrame) -> None:
+        return cls(players_stats=players_stats, all_data=df)
+    
+    def remove_records(self, player_stats: dict,  last_ids) -> None:
         """
-        Добавить запись к общецй статистике игроков
+        Удаляет информацию по матчам из указанной статистики игроков
+        
+        Аргументы:
+           last_ids - Список идентификаторов игр, которые необходимо удалить из статистики
+           player_stats - статистика по игрокам, из которой удаляем записи об играх
+        """
+        player_stats = deepcopy(player_stats)
+        if isinstance(last_ids, int):
+            last_ids = [last_ids]
+            
+        for game_id in last_ids:
+            for player_id in player_stats.keys():
+                player_stats[player_id] = [game for game in player_stats[player_id] if game['GAME_ID'] !=game_id]
+            #logger.info(f'game {game_id} removed from statistics') 
+   
+        return player_stats
+        
+        
+    def add_record(self, player_stats: dict, record: pd.DataFrame) -> None:
+        """
+        Добавить запись к указанной статистике игроков
         
         Аргументы:
             record: pd.DataFrame - новая запись игры
+            player_stats - статистика по игрокам, в которую добавляем новую запись
         """
         
-        record['MIN'] = record['MIN'].apply(min_to_second).fillna(0).astype(int)
+        player_stats = deepcopy(player_stats)
+        record.loc[:,'MIN'] = record['MIN'].apply(min_to_second).fillna(0).astype(int)
 
         for _, row in record[self.target_columns].iterrows():
             player_id = row.PLAYER_ID
             game_id = row.GAME_ID
-            id_game_list = [stat.GAME_ID for stat in  self.players_stats[player_id]]
+            id_game_list = [stat.GAME_ID for stat in  player_stats[player_id]]
              
             if game_id in id_game_list:
-                logger.info(f'This GAME_ID:{game_id} is already in the dataset') 
+                logger.info(f'This GAME_ID:{int(game_id)} is already in the dataset') 
                 return None
+      
+            else:
+                player_stats[player_id].append(row.fillna(0).astype(int)) 
             
-            self.players_stats[player_id].append(row.fillna(0).astype(int)) 
-            
-        logger.info(f'added game_id: {game_id}') 
+        #logger.info(f'added game_id: {int(game_id)}') 
+        return player_stats
+    
+    def get_report(self, N_last_game: int, db_path: str = r'../../data/basnya.db') -> None:
+        """ 
+        Получить отчёт за N последних игр
         
-        # пройтись по всем стратегиям и пересчитать для них показатели
+        Аргументы:
+            db_path - путь до локаьной бд
+            N_last_game - указать, сколько последних игр учитывать для создания отчёта
+        """
+        
+        conn = sqlite3.connect(db_path)
+        df = pd.read_sql_query(f'SELECT DISTINCT GAME_ID FROM boxscoretraditionalv2_0 ORDER BY GAME_ID DESC LIMIT {N_last_game}', conn)
+        last_game_id = list(reversed(df.GAME_ID))
+        old_stats = self.remove_records(self.players_stats, last_game_id)
+        new_stats = old_stats
+        logger.info('Start processing...')
+        for game_id in tqdm(last_game_id):
+            new_data =  self.all_data.query("""GAME_ID==@game_id""")
+            new_stats = self.add_record(new_stats, new_data)
+            
+        print(f'For the past {N_last_game} games')    
         for strategy in self.strategies.values():
-            # Добавить в стратегию новый рейтинг игроков
-            strategy.add_record_in_strategy(self.players_stats)
-           # logger.info(strategy.show_data_strategy())
-        
+            pprint(strategy.title)
+            pprint(strategy.result(old_stats, new_stats))
+            pprint('===========================================================')

@@ -1,6 +1,14 @@
 from abc import ABC, abstractmethod
 from typing import Dict, List
+import logging
+
 import pandas as pd 
+
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+output_handler = logging.StreamHandler()
+output_handler.setLevel(logging.INFO)
+logger = logging.getLogger()
 
 class Strategy(ABC):
     '''
@@ -8,15 +16,7 @@ class Strategy(ABC):
     '''
 
     @abstractmethod
-    def add_record_in_strategy():
-        """
-        Добавить новую запись в стратегию
-        """
-        
-        pass
-    
-    @abstractmethod
-    def show_data_strategy():
+    def result():
         """
         Показать данные после рассчета по стратегии 
         """
@@ -29,21 +29,17 @@ class StrategyRating(Strategy):
     Расчёт сигнальных показателейна основе ТОПов
     """
     
-    def __init__(self, players_stats: Dict[int, list], calculus_columns: List[str], top: int):
+    def __init__(self, top: int):
         """ 
         Аргументы:
-            players_stats: Dict[int, list] -  статистика по игрокам. Ключи - индексы игроков,
-                                            значения - сисок статистики по игроку за все указанные игры
             top - количество лучших игроков, которых учитывает рейтинг            
         """
-        # изначальный рейтинг
-        self.old_rating = self._calculate_rating(players_stats)
-        # рейтинг, который появился после добавления записи
+
+
         self.top=top
-        self.new_rating = None
         self.title = f'StrategyRating Top-{self.top}'
-        self.calculus_columns = calculus_columns
-       
+        self.calculus_columns = ['MIN', 'FGM','FGA','FG3M','FTM','FTA',
+                              'FT_PCT','OREB','DREB','REB','AST','STL','BLK','TO','PF','PTS']
 
     
     def _calculate_rating(self, players_stats: dict) -> Dict[str, pd.DataFrame]:
@@ -71,26 +67,18 @@ class StrategyRating(Strategy):
                     .rename(columns={col:'VALUE'}).assign(RATING=range(len(df_all[col]))) for col in df_all.columns} 
                                                             
         return ratings
-    
-    def add_record_in_strategy(self, new_player_stats: pd.DataFrame):
-        '''
-        Добавить запись и рассчитывает обновление рейтинга
         
-        Аргументы:
-            new_player_stats- статистика по всем игрокам, дополненная новой записью
-        '''
-        
-        if self.new_rating: 
-           self.old_rating = self.new_rating
-        self.new_rating = self._calculate_rating(new_player_stats) # обновленный рейтинг
-        
-        
-    def show_data_strategy(self, top=None):
+    def result(self,
+               old_stats: dict, 
+               new_stats: dict,
+               top=None):
         """
         Показать изменения рейтинга (показать N лучших игроков)
         
         Аргументы:
             top - N лучших игроков рейтинга 
+            old_stats - изначальная статистика по игрокам
+            new_stats - новая статистика по игрокам
         """
 
         if top == None:
@@ -99,9 +87,13 @@ class StrategyRating(Strategy):
         result ={'in_top':{}, 
                 'out_top':{}}
         
-
+        old_rating = self._calculate_rating(old_stats)
+        new_rating = self._calculate_rating(new_stats)    
+        
         # получим N лучших игроков
-        old_rating_N = {indicator: value.iloc[:top] for indicator, value in self.old_rating.items()}
+        old_rating_N = {indicator: value.iloc[:top] for indicator, value in old_rating.items()}
+        new_rating_N = {indicator: value.iloc[:top] for indicator, value in new_rating.items()}
+        
         old_top = {col: set(old_rating_N[col]['PLAYER_ID'].to_list()) for col in old_rating_N.keys()}
         
         if new_rating_N:
