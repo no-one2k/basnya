@@ -145,14 +145,14 @@ class StatsHolder:
         for _, row in record[self.target_columns].iterrows():
             player_id = row.PLAYER_ID
             game_id = row.GAME_ID
-            id_game_list = [stat.GAME_ID for stat in  player_stats[player_id]]
+            # id_game_list = [stat.GAME_ID for stat in  player_stats[player_id]]
              
-            if game_id in id_game_list:
-                logger.info(f'This GAME_ID:{int(game_id)} is already in the dataset') 
-                return None
+            # if game_id in id_game_list:
+            #     logger.info(f'This GAME_ID:{int(game_id)} is already in the dataset') 
+            #     return None
       
-            else:
-                player_stats[player_id].append(row.fillna(0).astype(int)) 
+            #else:
+            player_stats[player_id].append(row.fillna(0).astype(int)) 
             
         #logger.info(f'added game_id: {int(game_id)}') 
         return player_stats
