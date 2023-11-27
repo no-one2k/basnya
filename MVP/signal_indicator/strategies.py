@@ -20,7 +20,6 @@ class Strategy(ABC):
         """
         Показать данные после рассчета по стратегии 
         """
-        
         pass
     
 
@@ -29,19 +28,24 @@ class StrategyRating(Strategy):
     Расчёт сигнальных показателейна основе ТОПов
     """
     
-    def __init__(self, top: int):
+    def __init__(self, top: int, playerID2name: dict = None):
         """ 
         Аргументы:
-            top - количество лучших игроков, которых учитывает рейтинг            
+            top - количество лучших игроков, которых учитывает рейтинг        
+            playerId2name - справочник для перевода id игрока в более подробную информацию  
         """
 
 
         self.top=top
-        self.title = f'StrategyRating Top-{self.top}'
+        self.title = f'Top-{self.top}'
         self.calculus_columns = ['MIN', 'FGM','FGA','FG3M','FTM','FTA',
                               'FT_PCT','OREB','DREB','REB','AST','STL','BLK','TO','PF','PTS']
+        self.playerID2name= playerID2name
+   
 
-    
+    def __repr__(self) -> str:
+         return self.title
+     
     def _calculate_rating(self, players_stats: dict) -> Dict[str, pd.DataFrame]:
         """
         Рассчёт рейтинга для всех игроков по данным players_stats
@@ -96,17 +100,30 @@ class StrategyRating(Strategy):
         
         old_top = {col: set(old_rating_N[col]['PLAYER_ID'].to_list()) for col in old_rating_N.keys()}
         new_top = {col: set(new_rating_N [col]['PLAYER_ID'].to_list()) for col in new_rating_N.keys()}
-
+        
+        # stats.playerId2name[1629605]['NAME']
+     
         for col in self.calculus_columns:
-                in_top =  new_top[col] - old_top[col]
-                out_top = old_top[col] -  new_top[col]
+                if self.playerID2name: # если передали словарь
+                    in_top =  [self.playerID2name.get(player_id, '<UNKNOW>') 
+                               for player_id in list(new_top[col] - old_top[col])]
+                    out_top = [self.playerID2name.get(player_id, '<UNKNOW>') 
+                               for player_id in list(old_top[col] -  new_top[col])]
+                else:
+                    in_top =  list(new_top[col] - old_top[col])
+                    out_top = list(old_top[col] -  new_top[col])
+                    
                 
                 if in_top:
                         result['in_top'][col] = in_top
                 if out_top:
                         result['out_top'][col] = out_top
                         
+        if  (not result['in_top'] ) & (not result['out_top']):
+            return None    
+            
         answer = {'description': f'Top {top} players',
-                  'values': result}                
-        return answer
+                  'values': result}   
+        return  answer            
+
     

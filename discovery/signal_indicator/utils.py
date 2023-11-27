@@ -175,9 +175,13 @@ class StatsHolder:
         for game_id in tqdm(last_game_id):
             new_data =  self.all_data.query("""GAME_ID==@game_id""")
             new_stats = self.add_record(new_stats, new_data)
+              
+        answer = {
+            'title': f'For the past {N_last_game} games',
+            'result':[]
+        }
+        logger.info('calculation of strategy results ...') 
+        for strategy in tqdm(self.strategies.values()):
+            answer['result'].append(strategy.result(old_stats, new_stats))
             
-        print(f'For the past {N_last_game} games')    
-        for strategy in self.strategies.values():
-            pprint(strategy.title)
-            pprint(strategy.result(old_stats, new_stats))
-            pprint('===========================================================')
+        return  answer

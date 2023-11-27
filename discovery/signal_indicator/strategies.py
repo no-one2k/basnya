@@ -98,13 +98,6 @@ class StrategyRating(Strategy):
         new_top = {col: set(new_rating_N [col]['PLAYER_ID'].to_list()) for col in new_rating_N.keys()}
         new_top = {col: set(new_rating_N [col]['PLAYER_ID'].to_list()) for col in new_rating_N.keys()}
         
-        # if new_rating_N:
-        #     new_rating_N = {indicator: value.iloc[:top] for indicator, value in new_rating.items()}
-        #     new_top = {col: set(new_rating_N [col]['PLAYER_ID'].to_list()) for col in new_rating_N.keys()}
-        # else:
-        #    new_top = {col: set(new_rating_N [col]['PLAYER_ID'].to_list()) for col in new_rating_N.keys()} 
-
-
         for col in self.calculus_columns:
                 in_top =  new_top[col] - old_top[col]
                 out_top = old_top[col] -  new_top[col]
@@ -115,6 +108,7 @@ class StrategyRating(Strategy):
                         result['out_top'][col] = out_top
                         
         answer = {'description': f'Top {top} players',
-                  'values': result}                
+                  'values': result,
+                  'kind': self.title}                
         return answer
     

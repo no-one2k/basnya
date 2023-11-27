@@ -1,0 +1,3 @@
+{
+    "text": "You are a professional basketball commentator. You are given data in format {stat_players} where:\n1) 'title' is the prairie for which we took a rating change\n2) 'description'- specifies which TOP players we take\n3) 'in_top' - players who entered the top\n4) 'out_top' - players who dropped out of the top\n\nWrite me an emotional tweet using emoji"
+}

@@ -10,6 +10,7 @@ import logging
 from abc import ABC, abstractmethod
 from copy import deepcopy 
 from pprint import pprint 
+import json
 
 from dotenv import load_dotenv
 import openai
@@ -52,6 +53,21 @@ def min_to_second(string: str):
             return minutes+seconds
     else:
         return 0
+    
+    
+    
+def get_completion(prompt, model='gpt-3.5-turbo'):
+    """
+    Получить ответ модели Openai
+    """
+    
+    messages = [{"role": "user", "content": prompt}]
+    response = openai.ChatCompletion.create(
+        model=model,
+        messages=messages,
+        temperature=0.8, # this is the degree of randomness of the model's output
+    )
+    return response.choices[0].message["content"]
 
 
 class StatsHolder:
@@ -65,7 +81,7 @@ class StatsHolder:
                               'FT_PCT','OREB','DREB','REB','AST','STL','BLK','TO','PF','PTS']
     labels_columns: list = ['PLAYER_ID', 'GAME_ID']
     
-    def __init__(self, players_stats: Dict[int, List[pd.Series]], all_data: pd.DataFrame):
+    def __init__(self, players_stats: Dict[int, List[pd.Series]], all_data: pd.DataFrame, db_path: str):
         """
         Аргументы:
             players_stats - статистика по игрокам. Ключи - индексы игроков, 
@@ -76,6 +92,35 @@ class StatsHolder:
         self.players_stats: Dict[int, List[pd.Series]] = players_stats # статистика по игрокам
         self.all_data = all_data
         self.strategies = {} # словарь, содержащий все стратегии для отслеживания сигнальных показателей
+        self.db_path = db_path
+        self.get_prompt_template()
+        self.get_payerID2name()
+    
+    
+    def get_prompt_template(self, path_template:str = r'..\resource\prompt\signal_indicator\prompt_tempalte.json') -> None:
+        """
+        Получить шаблон для Openai
+        
+        Аргументы:
+            path_template - путь до шаблона
+        """
+        
+        with open(path_template,'r') as f:
+            self.prompt_template  = json.load(f)['text']
+    
+    def get_payerID2name(self) -> Dict:
+        '''
+        Получить справочник. кокторый сопоставляет id игрока с именем игрока и страной
+        '''
+
+        conn = sqlite3.connect(self.db_path)
+        playerId2name = (
+                        pd.read_sql_query(f"SELECT PERSON_ID, DISPLAY_FIRST_LAST, COUNTRY  FROM 'player_0'", conn)
+                        .set_index('PERSON_ID')
+                        .rename(columns={'DISPLAY_FIRST_LAST': 'NAME'})
+                        .to_dict(orient='index')
+                        )
+        self.playerId2name = playerId2name
     
     def add_strategy(self, strategy):
         """
@@ -83,6 +128,7 @@ class StatsHolder:
         """
         
         self.strategies[strategy.title] = strategy
+        
         logger.info(f'Added "{strategy.title}" strategy')
     
     def show_strategies(self):
@@ -108,7 +154,7 @@ class StatsHolder:
             for index, row in game.iterrows():
                 players_stats[row.PLAYER_ID].append(row[cls.target_columns])
                 
-        return cls(players_stats=players_stats, all_data=df)
+        return cls(players_stats=players_stats, all_data=df, db_path=db_path)
     
     def remove_records(self, player_stats: dict,  last_ids) -> None:
         """
@@ -125,7 +171,6 @@ class StatsHolder:
         for game_id in last_ids:
             for player_id in player_stats.keys():
                 player_stats[player_id] = [game for game in player_stats[player_id] if game['GAME_ID'] !=game_id]
-            #logger.info(f'game {game_id} removed from statistics') 
    
         return player_stats
         
@@ -154,7 +199,6 @@ class StatsHolder:
             else:
                 player_stats[player_id].append(row.fillna(0).astype(int)) 
             
-        #logger.info(f'added game_id: {int(game_id)}') 
         return player_stats
     
     def get_report(self, N_last_game: int, db_path: str = r'../../data/basnya.db') -> None:
@@ -175,9 +219,42 @@ class StatsHolder:
         for game_id in tqdm(last_game_id):
             new_data =  self.all_data.query("""GAME_ID==@game_id""")
             new_stats = self.add_record(new_stats, new_data)
+              
+        answer = {
+            'title': f'For the past {N_last_game} games',
+            'result':[]
+        }
+        
+        logger.info('calculation of strategy results ...') 
+        for strategy in tqdm(self.strategies.values()):
+            answer['result'].append(strategy.result(old_stats, new_stats))
             
-        print(f'For the past {N_last_game} games')    
-        for strategy in self.strategies.values():
-            pprint(strategy.title)
-            pprint(strategy.result(old_stats, new_stats))
-            pprint('===========================================================')
+        answer['result']  = list(filter(lambda x: x !=None, answer['result']))
+        return  answer
+    
+    def get_twits(self,
+                  N_last_game: int):
+        """
+        Создать твиты в зависимости от стратегии
+        
+        Аргументы:
+            N_last_game - сколько последних игр взять для проверки рейтинга
+        """
+        
+        result = self.get_report(N_last_game)
+        
+        title = result['title']
+        twits = []
+        logger.info('Tweeting ...')
+        for data_prompt in tqdm(result['result']):
+            for_prompt = {'title': title, 'data': data_prompt }
+            prompt = self.prompt_template.format(stat_players=for_prompt)
+            twit = get_completion(prompt, model="gpt-3.5-turbo") 
+            twits.append(twit)
+            
+        return twits
+    
+            
+
+        
+    
