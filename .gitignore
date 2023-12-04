@@ -149,3 +149,4 @@ data/season_21-22
 
 # langchaine embeddings cache
 cache/
+/discovery/tools/streamlit/.streamlit/secrets.toml
