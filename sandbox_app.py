@@ -9,6 +9,8 @@ import datetime as dt
 from nba_api.stats.endpoints import leaguegamefinder
 from prefect import flow
 
+from back_fill_games import back_fill_games
+
 SQLITE_DB_PATH = "test.db"
 
 
@@ -97,9 +99,10 @@ def on_get_games():
 
 
 def on_collect():
-    _game_id = st.session_state["select_game_id"]
-    if _game_id:
-        selected_games_df, missing_games_df = select_missing_game_ids(_game_id, SQLITE_DB_PATH)
+    selected_game_ids = st.session_state["select_game_id"]
+    if selected_game_ids:
+        back_fill_games(game_ids=selected_game_ids)
+        selected_games_df, missing_games_df = select_missing_game_ids(selected_game_ids, SQLITE_DB_PATH)
         st.session_state.selected_games_df = selected_games_df
         st.session_state.txt_tweets_from_db = "\n".join(f"\t\ttweet based on {g}" for g in selected_games_df.game_id)
         missing_games_df['game_id'] = missing_games_df.index.map(int)
