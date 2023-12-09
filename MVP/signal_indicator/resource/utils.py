@@ -1,16 +1,14 @@
 import pandas as pd 
 from tqdm import tqdm 
-from pathlib import Path
 from typing import Dict, List
 import re 
 from collections import defaultdict
 import os
 import re
 import logging
-from abc import ABC, abstractmethod
 from copy import deepcopy 
 from pprint import pprint 
-import json
+
 
 from dotenv import load_dotenv
 import openai
@@ -18,7 +16,7 @@ from tqdm import tqdm
 import pandas as pd
 import sqlite3
 
-from strategies import Strategy
+
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 output_handler = logging.StreamHandler()
@@ -29,7 +27,7 @@ pd.set_option('display.max_columns', 500)
 pd.set_option('display.width', 1000)
 
 load_dotenv('../openai.env')
-openai.api_key  = os.getenv('API_KEY')
+openai.api_key  = os.getenv('OPENAI_API_KEY')
 logger = logging.getLogger()
 
 
@@ -81,7 +79,7 @@ class StatsHolder:
                               'FT_PCT','OREB','DREB','REB','AST','STL','BLK','TO','PF','PTS']
     labels_columns: list = ['PLAYER_ID', 'GAME_ID']
     
-    def __init__(self, players_stats: Dict[int, List[pd.Series]], all_data: pd.DataFrame, db_path: str):
+    def __init__(self, players_stats: Dict[int, List[pd.Series]], all_data: pd.DataFrame, db_path: str, prompt:str):
         """
         Аргументы:
             players_stats - статистика по игрокам. Ключи - индексы игроков, 
@@ -93,20 +91,14 @@ class StatsHolder:
         self.all_data = all_data
         self.strategies = {} # словарь, содержащий все стратегии для отслеживания сигнальных показателей
         self.db_path = db_path
-        self.get_prompt_template()
         self.get_payerID2name()
-    
-    
-    def get_prompt_template(self, path_template:str = r'..\resource\prompt\signal_indicator\prompt_tempalte.json') -> None:
-        """
-        Получить шаблон для Openai
         
-        Аргументы:
-            path_template - путь до шаблона
-        """
         
-        with open(path_template,'r') as f:
-            self.prompt_template  = json.load(f)['text']
+        # ----------------------------- вынести в Strategy
+        self.prompt_template  = prompt
+    
+
+        
     
     def get_payerID2name(self) -> Dict:
         '''
@@ -135,7 +127,7 @@ class StatsHolder:
         return [strategy  for strategy in  self.strategies]
         
     @classmethod
-    def from_sql(cls, db_path: str=r'../../data/basnya.db') -> 'StatsHolder':
+    def from_sql(cls, prompt, db_path) -> 'StatsHolder':
         """
         Создание объекта StatsHolder из бд SQlite
         
@@ -154,7 +146,7 @@ class StatsHolder:
             for index, row in game.iterrows():
                 players_stats[row.PLAYER_ID].append(row[cls.target_columns])
                 
-        return cls(players_stats=players_stats, all_data=df, db_path=db_path)
+        return cls(players_stats=players_stats, all_data=df, db_path=db_path,prompt=prompt)
     
     def remove_records(self, player_stats: dict,  last_ids) -> None:
         """
@@ -201,7 +193,7 @@ class StatsHolder:
             
         return player_stats
     
-    def get_report(self, N_last_game: int, db_path: str = r'../../data/basnya.db') -> None:
+    def get_report(self, N_last_game: int) -> None:
         """ 
         Получить отчёт за N последних игр
         
@@ -210,7 +202,7 @@ class StatsHolder:
             N_last_game - указать, сколько последних игр учитывать для создания отчёта
         """
         
-        conn = sqlite3.connect(db_path)
+        conn = sqlite3.connect(self.db_path)
         df = pd.read_sql_query(f'SELECT DISTINCT GAME_ID FROM boxscoretraditionalv2_0 ORDER BY GAME_ID DESC LIMIT {N_last_game}', conn)
         last_game_id = list(reversed(df.GAME_ID))
         old_stats = self.remove_records(self.players_stats, last_game_id)

@@ -1,6 +1,6 @@
 import sqlite3
 from collections import defaultdict
-from typing import List, Dict
+from typing import List, Dict, Tuple
 
 import pandas as pd
 from nba_api.stats.endpoints import leaguegamefinder, boxscoresummaryv2, boxscoretraditionalv2, commonplayerinfo
@@ -15,7 +15,6 @@ def get_db_path() -> str:
     Returns:
     - str: The path to the SQLite database file.
     """
-    # TODO: add reading prefect variables
     result = '../../data/basnya.db'
     print(f"DB path: '{result}'")
     return result
@@ -160,7 +159,7 @@ def get_current_players(db_path: str) -> pd.DataFrame:
 
 
 @task(retries=2, log_prints=True)
-def prepare_games_to_append(game_ids_to_append) -> Dict[str, pd.DataFrame]:
+def prepare_games_to_append(game_ids_to_append) -> List[Tuple[str, pd.DataFrame]]:
     """
     Get a list of NBA game IDs to append to the database.
 
@@ -179,13 +178,13 @@ def prepare_games_to_append(game_ids_to_append) -> Dict[str, pd.DataFrame]:
             _frames = endpoint(game_id=g_i).get_data_frames()
             for i, _df in enumerate(_frames):
                 result[f"{table_prefix}_{i}"].append(_df)
-    return {k: pd.concat(v, axis=0) for k, v in result.items()}
+    return [(k, pd.concat(v, axis=0)) for k, v in result.items()]
 
 
 @task(retries=2, log_prints=True)
 def prepare_players_to_append(
         current_players: pd.DataFrame,
-        games_dataframe_dict: Dict[str, pd.DataFrame]) -> Dict[str, pd.DataFrame]:
+        games_dataframe_list: List[Tuple[str, pd.DataFrame]]) -> List[Tuple[str, pd.DataFrame]]:
     """
     Prepare player DataFrames to append to the database.
 
@@ -196,7 +195,13 @@ def prepare_players_to_append(
     Returns:
     - Dict[str, pd.DataFrame]: Dictionary of player DataFrames prepared for appending to the database.
     """
-    players_from_games = games_dataframe_dict.get('boxscoretraditionalv2_0', pd.DataFrame({'PLAYER_ID': []}))
+    def _get_games_df():
+        for k, _df in games_dataframe_list:
+            if k == 'boxscoretraditionalv2_0':
+                return _df
+        return pd.DataFrame({'PLAYER_ID': []})
+
+    players_from_games = _get_games_df()
     players_to_append = set(players_from_games.PLAYER_ID) - set(current_players.PERSON_ID)
     if players_to_append:
         print(f"need to append players: {len(players_to_append)}")
@@ -205,14 +210,14 @@ def prepare_players_to_append(
             _frames = commonplayerinfo.CommonPlayerInfo(player_id=pl_i).get_data_frames()
             for i, _df in enumerate(_frames):
                 result[f"player_{i}"].append(_df)
-        return {k: pd.concat(v, axis=0) for k, v in result.items()}
+        return [(k, pd.concat(v, axis=0)) for k, v in result.items()]
     else:
         print("no need to append players")
-        return {}
+        return []
 
 
 @task(retries=2, log_prints=True)
-def append_tables(db_path: str, dataframe_dict: Dict[str, pd.DataFrame]):
+def append_tables(db_path: str, dataframe_list: List[Tuple[str, pd.DataFrame]]):
     """
    Append DataFrames to SQLite database tables.
 
@@ -224,14 +229,14 @@ def append_tables(db_path: str, dataframe_dict: Dict[str, pd.DataFrame]):
    - None
    """
     with sqlite3.connect(db_path) as connection:
-        for table_name, _df in dataframe_dict.items():
+        for table_name, _df in dataframe_list:
             print(f"writing {len(_df)} records to {table_name}")
-            _df.to_sql(table_name, con=connection, if_exists='append')
+            _df.to_sql(table_name, con=connection, if_exists='append', index=False)
     return
 
 
 @flow(log_prints=True)
-def back_fill_games(game_ids: List[str]) -> Dict[str, pd.DataFrame]:
+def back_fill_games(game_ids: List[str]) -> List[Tuple[str, pd.DataFrame]]:
     """
     Back-fill NBA game and player information into the database.
 
@@ -248,18 +253,19 @@ def back_fill_games(game_ids: List[str]) -> Dict[str, pd.DataFrame]:
         latest_games=latest_game_df,
         game_ids=game_ids
     )
-    games_to_append_dict = prepare_games_to_append(game_ids_to_append)
-    players_to_append_dict = prepare_players_to_append(
+    games_to_append_list = prepare_games_to_append(game_ids_to_append)
+    players_to_append_list = prepare_players_to_append(
         current_players=current_players,
-        games_dataframe_dict=games_to_append_dict
-    )
-    games_to_append_dict.update(players_to_append_dict)
-    append_tables(
-        db_path=db_path,
-        dataframe_dict=games_to_append_dict
+        games_dataframe_list=games_to_append_list
     )
 
-    return games_to_append_dict
+    tables_to_append = players_to_append_list + games_to_append_list  # insert players first
+    append_tables(
+        db_path=db_path,
+        dataframe_list=tables_to_append
+    )
+
+    return tables_to_append
 
 
 if __name__ == "__main__":
