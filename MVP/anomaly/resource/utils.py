@@ -223,7 +223,7 @@ class  AnomalyСalculation:
         model_creative = OpenAI(temperature=0.2)
         
         anomaly_stats = self.get_anomaly_stats_with_context(game_id=game_id)
-        df_train = self.df_train
+     
         
         prompt_tweet_only_stats = PromptTemplate.from_template(prompt_template_tweet_only_stats)
         parser_sel_items = PydanticOutputParser(pydantic_object=SelectedItems)
