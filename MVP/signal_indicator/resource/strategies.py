@@ -100,8 +100,6 @@ class StrategyRating(Strategy):
         
         old_top = {col: set(old_rating_N[col]['PLAYER_ID'].to_list()) for col in old_rating_N.keys()}
         new_top = {col: set(new_rating_N [col]['PLAYER_ID'].to_list()) for col in new_rating_N.keys()}
-        
-        # stats.playerId2name[1629605]['NAME']
      
         for col in self.calculus_columns:
                 if self.playerID2name: # если передали словарь
@@ -124,6 +122,9 @@ class StrategyRating(Strategy):
             
         answer = {'description': f'Top {top} players',
                   'values': result}   
-        return  answer            
+        return  answer  
+           
+ 
+        
 
     
