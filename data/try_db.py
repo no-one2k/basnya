@@ -457,5 +457,51 @@ def add_data_to_db(name_db):
             df.to_sql(file_name[:-15], con, if_exists='append', index=False)
 
 
-create_table('test')
-add_data_to_db('test')
+def create_season_type():
+    with sq.connect('test.db') as con:
+        cur = con.cursor()
+        cur.execute("""ALTER TABLE "games" ADD COLUMN "season_type" INTEGER REFERENCES season_types(season_type_id) """)
+
+
+def add_type_season(name_db: str) -> None:
+    with sq.connect(f'{name_db}.db') as con:
+        cur = con.cursor()
+        cur.execute("""
+        CREATE TABLE season_types("season_type_id" INTEGER NOT NULL PRIMARY KEY, "description" TEXT)
+        """)
+
+        cur.execute("""
+        INSERT INTO season_types("season_type_id", "description") VALUES (1, "Pre Season");
+        """)
+        cur.execute("""
+        INSERT INTO season_types("season_type_id", "description") VALUES (2, "Regular Season");
+        """)
+        cur.execute("""
+        INSERT INTO season_types("season_type_id", "description") VALUES (3, "All Star");
+        """)
+        cur.execute("""
+        INSERT INTO season_types("season_type_id", "description") VALUES (4, "Playoffs");
+        """)
+
+        cur.execute("""
+        ALTER TABLE games ADD COLUMN season_type REFERENCES season_types(season_type_id);
+        """)
+
+        game_ids_str = cur.execute('SELECT GAME_ID_STR FROM games').fetchall()
+        for id in game_ids_str:
+            if id[0][2] == '1':
+                cur.execute(f"""
+                UPDATE games SET season_type=1 WHERE GAME_ID_STR="{str(id[0])}"
+                """)
+            if id[0][2] == '2':
+                cur.execute(f"""
+                UPDATE games SET season_type=2 WHERE GAME_ID_STR="{str(id[0])}"
+                """)
+            if id[0][2] == '3':
+                cur.execute(f"""
+                UPDATE games SET season_type=3 WHERE GAME_ID_STR="{str(id[0])}"
+                """)
+            if id[0][2] == '4':
+                cur.execute(f"""
+                UPDATE games SET season_type=4 WHERE GAME_ID_STR="{str(id[0])}"
+                """)
