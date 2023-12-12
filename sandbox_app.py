@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Tuple
 import hmac
 
 import pandas as pd
@@ -11,7 +11,8 @@ from prefect import flow
 
 from back_fill_games import back_fill_games
 
-SQLITE_DB_PATH = "test.db"
+SQLITE_DB_PATH = "basnya.db"
+DEFAULT_GAMES_COLUMNS = tuple(['GAME_ID', 'GAME_DATE_EST', 'GAMECODE'])
 
 
 @flow
@@ -60,9 +61,15 @@ def check_password():
     return False
 
 
-def select_missing_game_ids(game_ids: List[str], db_path: str) -> (pd.DataFrame, pd.DataFrame):
+def split_games_dfs(
+        game_ids: List[str],
+        back_filled_dfs: List[Tuple[str, pd.DataFrame]],
+        db_path: str,
+        columns: List[str] = DEFAULT_GAMES_COLUMNS,
+) -> (pd.DataFrame, pd.DataFrame):
     """
-    Select rows from the 'GAMES' table for given list of game IDs and collect missing game IDs.
+    splits game_ids into ones that were in DB before and new added ones
+    and turns both groups into dataframes with `columns` columns
 
     Parameters:
     - game_ids (List[str]): List of NBA game IDs.
@@ -71,23 +78,29 @@ def select_missing_game_ids(game_ids: List[str], db_path: str) -> (pd.DataFrame,
     Returns:
     - pd.DataFrame: DataFrame containing rows from the 'GAMES' table for the given game IDs.
     """
-    # Create a connection to the SQLite database
-    with sqlite3.connect(db_path) as connection:
-        # Query to select rows from 'GAMES' table for the given game IDs
-        select_query = f"""
-        SELECT *
-        FROM "GAMES"
-        WHERE "GAME_ID" IN ({', '.join(['?' for _ in game_ids])});
-        """
-        # Execute the query and fetch the results into a DataFrame
-        selected_games_df = pd.read_sql(select_query, connection, params=game_ids)
+    added_games_df = pd.DataFrame(columns=columns)
+    added_game_ids = set()
+    for k, _games_df in back_filled_dfs:
+        if k == 'games':
+            added_games_df = _games_df
+            if len(added_games_df) > 0:
+                added_game_ids = set(added_games_df.GAME_ID_STR)
 
-    existing_game_ids = set(selected_games_df["game_id"].astype(int))
-    missing_game_ids = [g for g in game_ids if int(g) not in existing_game_ids]
+    existed_game_ids = [g for g in game_ids if g not in added_game_ids]
+    if existed_game_ids:
+        with sqlite3.connect(db_path) as connection:
+            select_query = f"""
+            SELECT *
+            FROM "GAMES"
+            WHERE "GAME_ID_STR" IN ({', '.join(['?' for _ in existed_game_ids])});
+            """
+            existed_games_df = pd.read_sql(select_query, connection, params=existed_game_ids)
+    else:
+        existed_games_df = pd.DataFrame(columns=columns)
 
-    missing_games_df = pd.DataFrame(index=missing_game_ids)
-
-    return selected_games_df, missing_games_df
+    def _select_columns(_df):
+        return _df[[c for c in columns if c in _df.columns]]
+    return _select_columns(existed_games_df), _select_columns(added_games_df)
 
 
 def on_get_games():
@@ -101,17 +114,18 @@ def on_get_games():
 def on_collect():
     selected_game_ids = st.session_state["select_game_id"]
     if selected_game_ids:
-        back_fill_games(game_ids=selected_game_ids)
-        selected_games_df, missing_games_df = select_missing_game_ids(selected_game_ids, SQLITE_DB_PATH)
-        st.session_state.selected_games_df = selected_games_df
-        st.session_state.txt_tweets_from_db = "\n".join(f"\t\ttweet based on {g}" for g in selected_games_df.game_id)
-        missing_games_df['game_id'] = missing_games_df.index.map(int)
-        missing_games_df['game_date'] = st.session_state["run_for_date"]
-        missing_games_df['teams_slug'] = missing_games_df.index
-        with sqlite3.connect(SQLITE_DB_PATH) as con:
-            missing_games_df.to_sql(con=con, name='games', if_exists='append', index=False)
-        st.session_state.missing_games_df = missing_games_df
-        st.session_state.txt_new_tweets = "\n".join(f"\t\ttweet based on {g}" for g in missing_games_df.game_id)
+        back_filled_dfs = back_fill_games(game_ids=selected_game_ids)
+        existed_games_df, added_games_df = split_games_dfs(
+            game_ids=selected_game_ids,
+            back_filled_dfs=back_filled_dfs,
+            db_path=SQLITE_DB_PATH
+        )
+        st.session_state.existed_games_df = existed_games_df
+        if len(existed_games_df) > 0:
+            st.session_state.txt_tweets_from_db = "\n".join(f"\t\ttweet based on {g}" for g in existed_games_df.GAME_ID)
+        st.session_state.added_games_df = added_games_df
+        if len(added_games_df) > 0:
+            st.session_state.txt_new_tweets = "\n".join(f"\t\ttweet based on {g}" for g in added_games_df.GAME_ID)
     else:
         st.info("no games to collect")
 
@@ -135,8 +149,8 @@ def add_app_logic():
     if "game_id_options" not in st.session_state:
         st.session_state.game_id_options = []
         st.session_state.game_id_default = []
-        st.session_state.selected_games_df = pd.DataFrame()
-        st.session_state.missing_games_df = pd.DataFrame()
+        st.session_state.existed_games_df = pd.DataFrame(columns=DEFAULT_GAMES_COLUMNS)
+        st.session_state.added_games_df = pd.DataFrame(columns=DEFAULT_GAMES_COLUMNS)
     _game_id = st.multiselect(
         label="select games",
         options=st.session_state.game_id_options,
@@ -145,10 +159,10 @@ def add_app_logic():
     )
     st.button("Collect", key='btn_collect', on_click=on_collect)
     st.subheader("Processed games:")
-    st.dataframe(data=st.session_state.selected_games_df, hide_index=True)
+    st.dataframe(data=st.session_state.existed_games_df, hide_index=True)
     st.text_area("", key="txt_tweets_from_db")
     st.subheader("New games:")
-    st.dataframe(data=st.session_state.missing_games_df, hide_index=True)
+    st.dataframe(data=st.session_state.added_games_df, hide_index=True)
     st.text_area("", key="txt_new_tweets")
 
 

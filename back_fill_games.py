@@ -1,6 +1,8 @@
+import datetime
 import sqlite3
 from collections import defaultdict
-from typing import List, Dict, Tuple
+import datetime as dt
+from typing import List, Tuple
 
 import pandas as pd
 from nba_api.stats.endpoints import leaguegamefinder, boxscoresummaryv2, boxscoretraditionalv2, commonplayerinfo
@@ -48,6 +50,52 @@ def get_latest_game(db_path: str) -> pd.DataFrame:
     else:
         print(f"Found games on latest date of '{result_df.GAME_DATE_EST.iloc[0]}': {len(result_df)}")
     return result_df
+
+
+def game_id_2_season_type(game_id: str) -> int:
+    if game_id[0] == '0':
+        if game_id[2] == '1':
+            return 1  # Pre Season
+        elif game_id[2] == '2':
+            return 2  # Regular Season
+        elif game_id[2] == '3':
+            return 3  # All Star
+        elif game_id[2] in ['4', '5']:
+            return 4  # Playoffs or Play-in
+        else:
+            return 1  # Pre Season
+    else:
+        return 1  # Pre Season
+
+
+def enrich_game_finder_df(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Modifies dataframe by adding columns 'GAME_ID_STR' and 'season_type'
+
+    Parameters:
+    - df: result of `LeagueGameFinder(...).get_data_frames()[0]`
+    Returns:
+    - pd.DataFrame: input dataframe with 2 new columns
+    """
+    df['GAME_ID_STR'] = df.GAME_ID
+    df.GAME_ID = df.GAME_ID.astype(int)
+    df['season_type'] = df.GAME_ID_STR.map(game_id_2_season_type)
+    return df
+
+
+def add_game_id_str(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Modifies dataframe by adding column 'GAME_ID_STR'
+
+    Parameters:
+    - df: result of nba_api.SomeEndpoint().get_data_frames()[i]`
+    Returns:
+    - pd.DataFrame: input dataframe with 1 new column
+    """
+    if 'GAME_ID' in df.columns:
+        df['GAME_ID_STR'] = df.GAME_ID
+        df.GAME_ID = df.GAME_ID.astype(int)
+    return df
 
 
 @task(retries=2, log_prints=True)
@@ -108,8 +156,8 @@ def get_games_minimal_date(games_by_ids_df: pd.DataFrame) -> str:
     return min_dt.date().strftime('%m/%d/%Y')
 
 
-@flow(retries=2, log_prints=True)
-def get_games_ids_to_append(latest_games: pd.DataFrame, game_ids: List[str]) -> List[str]:
+@flow(retries=1, log_prints=True)
+def get_games_ids_to_append(latest_games: pd.DataFrame, game_ids: List[str]) -> Tuple[List[str], pd.DataFrame]:
     """
     Get a list of NBA game IDs to append to the database.
 
@@ -127,9 +175,10 @@ def get_games_ids_to_append(latest_games: pd.DataFrame, game_ids: List[str]) -> 
     missing_games = get_games_from_to(
         date_from=latest_game_date_from_db,
         date_to=earliest_game_date_from_game_ids)
-    result = list(set(missing_games.GAME_ID.to_list() + game_ids))
+    missing_games = missing_games[~missing_games.GAME_ID.isin(latest_games.GAME_ID_STR)].copy()
+    result = [g for g in set(missing_games.GAME_ID.to_list() + game_ids) if g not in set(latest_games.GAME_ID_STR)]
     print(f"need to append games: {len(result)}")
-    return result
+    return result, missing_games
 
 
 @task(retries=2, log_prints=True)
@@ -171,14 +220,23 @@ def prepare_games_to_append(game_ids_to_append) -> List[Tuple[str, pd.DataFrame]
     - List[str]: List of NBA game IDs to append to the database.
     """
     result = defaultdict(list)
+    games_dfs = []
     for g_i in game_ids_to_append:
         for endpoint, table_prefix in zip(
                 [boxscoresummaryv2.BoxScoreSummaryV2, boxscoretraditionalv2.BoxScoreTraditionalV2],
                 ['boxscoresummaryv2', 'boxscoretraditionalv2']):
             _frames = endpoint(game_id=g_i).get_data_frames()
             for i, _df in enumerate(_frames):
+                _df = add_game_id_str(_df)
                 result[f"{table_prefix}_{i}"].append(_df)
-    return [(k, pd.concat(v, axis=0)) for k, v in result.items()]
+                if (table_prefix == 'boxscoresummaryv2') and (i == 0):
+                    games_dfs.append(_df)
+    if games_dfs:
+        games_df = pd.concat(games_dfs, axis=0)
+        games_df['season_type'] = games_df.GAME_ID_STR.map(game_id_2_season_type)
+    else:
+        games_df = pd.DataFrame()
+    return [('games', games_df)] + [(k, pd.concat(v, axis=0)) for k, v in result.items()]
 
 
 @task(retries=2, log_prints=True)
@@ -195,10 +253,11 @@ def prepare_players_to_append(
     Returns:
     - Dict[str, pd.DataFrame]: Dictionary of player DataFrames prepared for appending to the database.
     """
+
     def _get_games_df():
-        for k, _df in games_dataframe_list:
+        for k, _games_df in games_dataframe_list:
             if k == 'boxscoretraditionalv2_0':
-                return _df
+                return _games_df
         return pd.DataFrame({'PLAYER_ID': []})
 
     players_from_games = _get_games_df()
@@ -229,9 +288,13 @@ def append_tables(db_path: str, dataframe_list: List[Tuple[str, pd.DataFrame]]):
    - None
    """
     with sqlite3.connect(db_path) as connection:
+        # cursor = connection.cursor()
+        # cursor.execute('begin;')
         for table_name, _df in dataframe_list:
             print(f"writing {len(_df)} records to {table_name}")
-            _df.to_sql(table_name, con=connection, if_exists='append', index=False)
+            if len(_df) > 0:
+                _df.to_sql(table_name, con=connection, if_exists='append', index=False)
+        # cursor.execute('commit;')
     return
 
 
@@ -249,7 +312,7 @@ def back_fill_games(game_ids: List[str]) -> List[Tuple[str, pd.DataFrame]]:
     db_path = get_db_path()
     latest_game_df = get_latest_game(db_path=db_path)
     current_players = get_current_players(db_path=db_path)
-    game_ids_to_append = get_games_ids_to_append(
+    game_ids_to_append, missing_games_df = get_games_ids_to_append(
         latest_games=latest_game_df,
         game_ids=game_ids
     )
