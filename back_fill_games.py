@@ -6,13 +6,34 @@ from typing import List, Tuple
 
 import pandas as pd
 from nba_api.stats.endpoints import leaguegamefinder, boxscoresummaryv2, boxscoretraditionalv2, commonplayerinfo
-from prefect import task, flow
+from prefect import task, flow, get_run_logger
 
 
 DEFAULT_GAMES_COLUMNS = ['unseen_game', 'game_id', 'game_date', 'teams', 'score']
+# logger = get_run_logger()
 
 
-# @task(log_prints=True)
+def get_all_ids_from_db(db_path: str) -> List:
+    """
+    Get all idxs in DB
+    
+    Parameters:
+        - db_path (str): The path to the SQLite database file.
+
+    Returns:
+    - list ids
+    """
+    sql_query =  "SELECT GAME_ID  FROM games"
+    with sqlite3.connect(db_path) as connection:
+        # Use pandas to execute the SQL query and read the results into a DataFrame
+        idx_game_in_db = pd.read_sql(sql_query, connection).GAME_ID.to_list()
+    return idx_game_in_db
+    
+
+
+
+
+@task(log_prints=True)
 def get_db_path() -> str:
     """
     Get the path to the SQLite database file.
@@ -25,7 +46,7 @@ def get_db_path() -> str:
     return result
 
 
-# @task(retries=2, log_prints=True)
+@task(retries=2, log_prints=True)
 def get_latest_game(db_path: str) -> pd.DataFrame:
     """
     Retrieve the row(s) for the game(s) with the latest GAME_DATE_EST from the "GAMES" table.
@@ -101,7 +122,7 @@ def add_game_id_str(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-# @task(retries=2, log_prints=True)
+@task(retries=2, log_prints=True)
 def get_games_from_to(date_from, date_to):
     """
     Get NBA games DataFrame within a specified date range.
@@ -125,7 +146,7 @@ def get_games_from_to(date_from, date_to):
     return pd.concat(_dfs, axis=0)
 
 
-# @task(retries=2, log_prints=True)
+@task(retries=2, log_prints=True)
 def get_games_by_ids(game_ids: List[str]) -> pd.DataFrame:
     """
     Get NBA games DataFrame by a list of game IDs.
@@ -159,7 +180,7 @@ def get_games_minimal_date(games_by_ids_df: pd.DataFrame) -> str:
     return min_dt.date().strftime('%m/%d/%Y')
 
 
-# @flow(retries=1, log_prints=True)
+@flow(retries=1, log_prints=True)
 def get_games_ids_to_append(latest_games: pd.DataFrame, game_ids: List[str]) -> Tuple[List[str], pd.DataFrame]:
     """
     Get a list of NBA game IDs to append to the database.
@@ -184,7 +205,7 @@ def get_games_ids_to_append(latest_games: pd.DataFrame, game_ids: List[str]) -> 
     return result, missing_games
 
 
-# @task(retries=2, log_prints=True)
+@task(retries=2, log_prints=True)
 def get_current_players(db_path: str) -> pd.DataFrame:
     """
     Retrieves players from "player_0" table.
@@ -210,8 +231,8 @@ def get_current_players(db_path: str) -> pd.DataFrame:
     return result_df
 
 
-# @task(retries=2, log_prints=True)
-def prepare_games_to_append(game_ids_to_append) -> List[Tuple[str, pd.DataFrame]]:
+@task(retries=2, log_prints=True)
+def prepare_games_to_append(game_ids_to_append, db_path) -> List[Tuple[str, pd.DataFrame]]:
     """
     Get a list of NBA game IDs to append to the database.
 
@@ -237,12 +258,17 @@ def prepare_games_to_append(game_ids_to_append) -> List[Tuple[str, pd.DataFrame]
     if games_dfs:
         games_df = pd.concat(games_dfs, axis=0)
         games_df['season_type'] = games_df.GAME_ID_STR.map(game_id_2_season_type)
+        
+        # check idx drom db
+        idx_db = get_all_ids_from_db(db_path)
+        games_df = games_df[~games_df['GAME_ID'].isin(idx_db)]
+   
     else:
         games_df = pd.DataFrame()
     return [('games', games_df)] + [(k, pd.concat(v, axis=0)) for k, v in result.items()]
 
 
-# @task(retries=2, log_prints=True)
+@task(retries=2, log_prints=True)
 def prepare_players_to_append(
         current_players: pd.DataFrame,
         games_dataframe_list: List[Tuple[str, pd.DataFrame]]) -> List[Tuple[str, pd.DataFrame]]:
@@ -278,7 +304,7 @@ def prepare_players_to_append(
         return []
 
 
-# @task(retries=2, log_prints=True)
+@task(retries=2, log_prints=True)
 def append_tables(db_path: str, dataframe_list: List[Tuple[str, pd.DataFrame]]):
     """
    Append DataFrames to SQLite database tables.
@@ -290,18 +316,19 @@ def append_tables(db_path: str, dataframe_list: List[Tuple[str, pd.DataFrame]]):
    Returns:
    - None
    """
+    print(dataframe_list)
     with sqlite3.connect(db_path) as connection:
-        # cursor = connection.cursor()
-        # cursor.execute('begin;')
         for table_name, _df in dataframe_list:
             print(f"writing {len(_df)} records to {table_name}")
             if len(_df) > 0:
                 _df.to_sql(table_name, con=connection, if_exists='append', index=False)
-        # cursor.execute('commit;')
+
+                    
+
     return
 
 
-# @flow(log_prints=True)
+@flow(log_prints=True)
 def back_fill_games(game_ids: List[str], db_path: str) -> List[Tuple[str, pd.DataFrame]]:
     """
     Back-fill NBA game and player information into the database.
@@ -315,12 +342,14 @@ def back_fill_games(game_ids: List[str], db_path: str) -> List[Tuple[str, pd.Dat
     if len(game_ids) == 0:
         return {}
     latest_game_df = get_latest_game(db_path=db_path)
+    
     current_players = get_current_players(db_path=db_path)
+    
     game_ids_to_append, missing_games_df = get_games_ids_to_append(
         latest_games=latest_game_df,
         game_ids=game_ids
     )
-    games_to_append_list = prepare_games_to_append(game_ids_to_append)
+    games_to_append_list = prepare_games_to_append(game_ids_to_append, db_path)
     players_to_append_list = prepare_players_to_append(
         current_players=current_players,
         games_dataframe_list=games_to_append_list
@@ -335,7 +364,7 @@ def back_fill_games(game_ids: List[str], db_path: str) -> List[Tuple[str, pd.Dat
     return tables_to_append
 
 
-# @task(retries=2, log_prints=True)
+@task(retries=2, log_prints=True)
 def get_game_ids_for_date(date: dt.date) -> List[str]:
     """
     Finds id's of nba games that have already ended
@@ -427,7 +456,7 @@ def prepare_game_df(on_date_game_df: pd.DataFrame) -> pd.DataFrame:
     )
 
 
-# @flow(log_prints=True)
+@flow(log_prints=True)
 def fetch_games_for_date(date: dt.date) -> pd.DataFrame:
     """
     1) finds games on 'date' date
@@ -437,6 +466,8 @@ def fetch_games_for_date(date: dt.date) -> pd.DataFrame:
     """
     db_path = get_db_path()
     game_ids = get_game_ids_for_date(date=date)
+
+    
     back_filled_dfs = back_fill_games(game_ids=game_ids, db_path=db_path)
     on_date_games_df = (
         split_games_dfs(

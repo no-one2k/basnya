@@ -150,3 +150,8 @@ data/season_21-22
 # langchaine embeddings cache
 cache/
 /.streamlit/secrets.toml
+
+
+# temp files
+error_df.xlsx
+
