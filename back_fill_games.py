@@ -7,6 +7,7 @@ from typing import List, Tuple
 import pandas as pd
 from nba_api.stats.endpoints import leaguegamefinder, boxscoresummaryv2, boxscoretraditionalv2, commonplayerinfo
 from prefect import task, flow, get_run_logger
+from git import Repo
 
 
 DEFAULT_GAMES_COLUMNS = ['unseen_game', 'game_id', 'game_date', 'teams', 'score']
@@ -259,6 +260,7 @@ def prepare_games_to_append(game_ids_to_append, db_path) -> List[Tuple[str, pd.D
         games_df = pd.concat(games_dfs, axis=0)
         games_df['season_type'] = games_df.GAME_ID_STR.map(game_id_2_season_type)
         
+        
         # check idx drom db
         idx_db = get_all_ids_from_db(db_path)
         games_df = games_df[~games_df['GAME_ID'].isin(idx_db)]
@@ -316,12 +318,32 @@ def append_tables(db_path: str, dataframe_list: List[Tuple[str, pd.DataFrame]]):
    Returns:
    - None
    """
-    print(dataframe_list)
+
     with sqlite3.connect(db_path) as connection:
+        
+        update_db = False
         for table_name, _df in dataframe_list:
             print(f"writing {len(_df)} records to {table_name}")
             if len(_df) > 0:
+                update_db = True
                 _df.to_sql(table_name, con=connection, if_exists='append', index=False)
+                
+        if update_db:
+                # added db in repo
+                repo = Repo('.git')
+                repo.git.checkout('streamlit_app')
+                repo.index.add([db_path])
+                repo.index.commit('add file basnya.db')
+                remote_url = 'https://github.com/no-one2k/basnya.git'
+                remotes = repo.remotes
+                if all(remote.name != 'origin' for remote in remotes):
+                    origin = repo.create_remote('origin', remote_url)
+            
+                origin = repo.remote(name='origin')
+                origin.push()
+                print('DB basnya push in repo')
+        else:
+            print(f'Data already available in basnya.db')
 
                     
 
