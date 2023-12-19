@@ -8,6 +8,9 @@ from typing import Dict, List, Union, Optional
 
 import openai
 import pandas as pd
+from langchain.llms.openai import OpenAI
+from langchain.prompts import PromptTemplate
+from langchain.schema.runnable import RunnablePassthrough
 from pydantic import BaseModel
 
 
@@ -230,13 +233,18 @@ class StatsHolder:
 
     def get_tweets(self, selected_game_ids: List[str]) -> List[Tweet]:
         strategies_result = self.run_strategies(selected_game_ids)
-        title = strategies_result['title']
-        tweets = []
+
         logger.info('Tweeting ...')
-        for data_prompt in strategies_result['result']:
-            for_prompt = {'title': title, 'data': data_prompt}
-            prompt = self.prompt_template.format(stat_players=for_prompt)
-            tweet_text = get_completion(prompt, model=DEFAULT_GPT_MODEL)
+        model_creative = OpenAI(temperature=0.2, model=DEFAULT_GPT_MODEL)
+        prompt_in_out_rating = PromptTemplate.from_template(self.prompt_template)
+        chain_in_out_rating = (
+            {'stat_players': RunnablePassthrough()}
+            | prompt_in_out_rating
+            | model_creative
+        )
+        tweets = []
+        for stat_players in strategies_result['result']:
+            tweet_text = chain_in_out_rating.invoke({'stat_players': stat_players})
             tweets.append(Tweet(
                 player_id=None,
                 game_id=None,

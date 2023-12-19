@@ -8,6 +8,9 @@ import datetime as dt
 
 from anomaly.resource.utils import AnomalyCalculation
 from back_fill_games import fetch_games_for_date, DEFAULT_GAMES_COLUMNS
+from signal_indicator.resource.prompts_template import prompt as rating_prompt
+from signal_indicator.resource.strategies import StrategyRating
+from signal_indicator.resource.utils import StatsHolder
 
 SQLITE_DB_PATH = "basnya.db"
 AD_MODEL_PATH = 'isolation_forest_model_2021-10-19_2023-10-23.joblib'
@@ -51,8 +54,14 @@ def on_generate():
     if selected_game_ids:
         anomaly = AnomalyCalculation(db_path=SQLITE_DB_PATH, path_model_weights=AD_MODEL_PATH)
         tweets_anomaly = anomaly.get_tweets(selected_game_ids=selected_game_ids)
-        if tweets_anomaly:
-            st.session_state.txt_tweets = "\n".join([t.tweet_text for t in tweets_anomaly])
+
+        stats = StatsHolder.from_sql(db_path=SQLITE_DB_PATH, prompt=rating_prompt)
+        strategy_top_10 = StrategyRating(top=10, player_id_to_name_dict=stats.player_id_to_name_dict)
+        stats.add_strategy(strategy_top_10)
+        tweets_rating = stats.get_tweets(selected_game_ids=selected_game_ids)
+        tweets = (tweets_anomaly or []) + (tweets_rating or [])
+        if tweets:
+            st.session_state.txt_tweets = "\n".join([t.tweet_text for t in tweets])
     else:
         st.info("no games to generate tweets")
 
