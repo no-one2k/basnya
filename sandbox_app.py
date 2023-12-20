@@ -1,10 +1,12 @@
 import os
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 import hmac
+from functools import partial
 
 import pandas as pd
 import streamlit as st
 import datetime as dt
+import pyperclip 
 
 from anomaly.resource.utils import AnomalyCalculation
 from back_fill_games import fetch_games_for_date, DEFAULT_GAMES_COLUMNS
@@ -15,6 +17,55 @@ from signal_indicator.resource.utils import StatsHolder
 SQLITE_DB_PATH = "basnya.db"
 AD_MODEL_PATH = 'isolation_forest_model_2021-10-19_2023-10-23.joblib'
 
+
+def get_form_for_tweet(container: st.container, data_wor_tweets: pd.DataFrame) -> None:
+    """
+    Create a form with tweets and buttons to copy
+    
+    Parameters:
+        - container (st.container): container where buttons and tweets will be created
+    """
+    
+    st.session_state.generate_tweets = True
+    st.session_state.buttons = []
+    
+    with container:
+        for index, tweet in enumerate(data_wor_tweets['teams'].to_list()):
+            col_button, col_text = st.columns([3,9]) 
+            with col_button:
+                button = st.button('Copy', key=f'button_{index}')
+                st.session_state.buttons.append(index)
+     
+            with col_text:
+                text_input = st.text_input(" ", value=tweet, key=f'text_{index}')
+            
+           
+
+
+
+def dataframe_with_selections(df: pd.DataFrame) -> Optional[pd.DataFrame]:
+    """
+    Line selection df
+    
+    Parameters:
+        - df (pd.DataFrame)
+    Return:
+        - elected_rows (pd.DataFrame) or None
+    """
+    
+    df_with_selections = df.copy()
+    df_with_selections.insert(0, "Select", False)
+
+    # Get dataframe row-selections from user with st.data_editor
+    edited_df = st.data_editor(
+        df_with_selections,
+        hide_index=True,
+        column_config={"Select": st.column_config.CheckboxColumn(required=True)},
+        disabled=df.columns,
+    )
+    # Filter the dataframe using the temporary column, then drop the column
+    selected_rows = edited_df[edited_df.Select]
+    return selected_rows.drop('Select', axis=1)
 
 def check_password():
     """Returns `True` if the user had the correct password."""
@@ -43,7 +94,8 @@ def check_password():
 
 def on_get_games():
     _date = st.session_state['date']
-    df_games_for_date = fetch_games_for_date(_date)
+    _token_git = st.secrets['TOKEN_GIT']
+    df_games_for_date = fetch_games_for_date(_date, _token_git)
     st.session_state["run_for_date"] = _date
     st.session_state["df_games_for_date"] = df_games_for_date
 
@@ -79,20 +131,63 @@ def add_app_logic():
         format='DD.MM.YYYY',
         key="date"
     )
+    
     if "df_games_for_date" not in st.session_state:
         st.session_state.df_games_for_date = pd.DataFrame(columns=DEFAULT_GAMES_COLUMNS)
-
+    if "data_for_tweets" not in st.session_state:
+        st.session_state.data_for_tweets = None
+        
+    # if "buttons" not in st.session_state:
+    #     st.session_state.buttons = []
+    # if "text_input" not in st.session_state:
+    #     st.session_state.text_input = []
+        
+    if 'generate_tweets' not in st.session_state:
+        st.session_state.generate_tweets = False
+        
     st.button("Get games", key='btn_get_games', on_click=on_get_games)
-    st.dataframe(data=st.session_state.df_games_for_date, hide_index=True, use_container_width=True)
-    st.button("Generate tweets", key='btn_generate', on_click=on_generate)
-    st.text_area("NBA. Where amazing tweets happen...", key="txt_tweets", label_visibility='hidden')
+    df = st.session_state.df_games_for_date
+    selection = dataframe_with_selections(df)
+    st.session_state.data_for_tweets =  selection
+    
+    container_with_tweets = st.container() 
+    with container_with_tweets:
+        st.button("Generate tweets", key='btn_generat', on_click=get_form_for_tweet, 
+                  args=(container_with_tweets, st.session_state.data_for_tweets, ))
+    
+    if 'buttons' in st.session_state:
+        for index in st.session_state.buttons:
+            if st.session_state.get(f'button_{index}', False):
+                text = st.session_state[f'text_{index}']
+                pyperclip.copy(text)
+                st.success('Tweet copied successfully!')
+                
+    # st.write(st.session_state)       
 
-
+    # ---------------------------------------- GENERATE TWEETS --------------------------------------
+    # st.dataframe(data=st.session_state.df_games_for_date, hide_index=True, use_container_width=True)
+    # st.button("Generate tweets", key='btn_generate', on_click=on_generate)
+    # st.text_area("NBA. Where amazing tweets happen...", key="txt_tweets", label_visibility='hidden')
+    
+        
 def main():
-    if not check_password():
-        st.stop()  # Do not continue if check_password is not True.
+    # if not check_password():
+    #     st.stop()  # Do not continue if check_password is not True.
     add_app_logic()
-
 
 if __name__ == '__main__':
     main()
+
+
+
+# def generate_buttons():
+#     if 'buttons' not in st.session_state:
+#         st.session_state.buttons = []
+#     st.session_state.buttons.append(st.button(f'Button {len(st.session_state.buttons)+1}'))
+
+# st.button('Generate buttons', on_click=generate_buttons)
+
+# # if 'buttons' in st.session_state:
+# #     for button in st.session_state.buttons:
+# #         button
+#st.write(st.session_state)
