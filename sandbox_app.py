@@ -29,19 +29,19 @@ def get_form_for_tweet(container: st.container, data_wor_tweets: pd.DataFrame) -
     st.session_state.generate_tweets = True
     st.session_state.buttons = []
     
+    on_generate()
+    tweets = st.session_state.txt_tweets
     with container:
-        for index, tweet in enumerate(data_wor_tweets['teams'].to_list()):
+        for index, tweet in enumerate(tweets):
             col_button, col_text = st.columns([3,9]) 
             with col_button:
                 button = st.button('Copy', key=f'button_{index}')
                 st.session_state.buttons.append(index)
      
             with col_text:
-                text_input = st.text_input(" ", value=tweet, key=f'text_{index}')
+                text_input = st.text_area("", value=tweet, key=f'text_{index}', height=30)
+                # text_input = st.text_input(" ", value=tweet, key=f'text_{index}')
             
-           
-
-
 
 def dataframe_with_selections(df: pd.DataFrame) -> Optional[pd.DataFrame]:
     """
@@ -101,7 +101,7 @@ def on_get_games():
 
 
 def on_generate():
-    _df = st.session_state["df_games_for_date"]
+    _df = st.session_state.data_for_tweets # отсюда берем айдишники игр
     selected_game_ids = _df.game_id[_df.unseen_game.notna()].to_list()
     if selected_game_ids:
         anomaly = AnomalyCalculation(db_path=SQLITE_DB_PATH, path_model_weights=AD_MODEL_PATH)
@@ -113,7 +113,7 @@ def on_generate():
         tweets_rating = stats.get_tweets(selected_game_ids=selected_game_ids)
         tweets = (tweets_anomaly or []) + (tweets_rating or [])
         if tweets:
-            st.session_state.txt_tweets = "\n".join([t.tweet_text for t in tweets])
+            st.session_state.txt_tweets = [tweet for tweet in "\n".join([t.tweet_text for t in tweets]).split('\n') if len(tweet)!=0]
     else:
         st.info("no games to generate tweets")
 
@@ -144,7 +144,8 @@ def add_app_logic():
         
     if 'generate_tweets' not in st.session_state:
         st.session_state.generate_tweets = False
-        
+    
+    
     st.button("Get games", key='btn_get_games', on_click=on_get_games)
     df = st.session_state.df_games_for_date
     selection = dataframe_with_selections(df)
@@ -171,8 +172,8 @@ def add_app_logic():
     
         
 def main():
-    # if not check_password():
-    #     st.stop()  # Do not continue if check_password is not True.
+    if not check_password():
+        st.stop()  # Do not continue if check_password is not True.
     add_app_logic()
 
 if __name__ == '__main__':
