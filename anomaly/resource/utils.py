@@ -131,12 +131,12 @@ class AnomalyCalculation:
         return predictions, shap_values
 
     def _get_train_test_df(self, game_ids: List[int]) -> (pd.DataFrame, pd.DataFrame):
-        df_test = self.df[self.df.GAME_ID.isin(game_ids)].copy()
+        df_test = self.df[self.df.GAME_ID.isin(game_ids)].drop_duplicates()
         min_date = df_test.GAME_DATE.min()
-        df_train = self.df[self.df.GAME_DATE < min_date]
+        df_train = self.df[self.df.GAME_DATE < min_date].drop_duplicates()
         return df_train, df_test
 
-    def get_anomaly_stats_with_context(self, df_test: pd.DataFrame):
+    def get_anomaly_stats_with_context(self, df_test: pd.DataFrame) -> pd.DataFrame:
         """
         Получить аномальную статистику по игрокам с контекстом (для подачи в GPT)
         """
@@ -145,14 +145,13 @@ class AnomalyCalculation:
 
         anomaly_stats = []
         for index, row in df_test[predictions == 1].reset_index(drop=True).iterrows():
-            _player_name = row.PLAYER_NAME
-            _team_name = row.TEAM_CITY
             _importance = explain_outlier(shap_value=shap_values[predictions == 1][index], columns=self.calculus_col)
             _stat_line = ", ".join(
                 [f"{col} = {row[col]}" for col, _ in sorted(_importance.items(), key=lambda p: p[1])])
-            anomaly_stats.append((_player_name, _team_name, _stat_line))
+            anomaly_stats.append((row.GAME_ID_STR, row.PLAYER_ID, row.PLAYER_NAME, row.TEAM_ABBREVIATION, _stat_line))
 
-        return anomaly_stats
+        return pd.DataFrame(anomaly_stats, columns=['GAME_ID_STR', 'PLAYER_ID', 'PLAYER_NAME',
+                                                    'TEAM_ABBREVIATION', '_stat_line'])
 
     def get_tweets(self, selected_game_ids: List[str]) -> List[Tweet]:
         """
@@ -167,10 +166,13 @@ class AnomalyCalculation:
         model_creative = OpenAI(temperature=0.2, model=DEFAULT_GPT_MODEL)
 
         parser_sel_items = PydanticOutputParser(pydantic_object=SelectedItems)
-        prompt_sel_items = PromptTemplate(
+        prompt_sel_items = PromptTemplate.from_template(
             template=prompt_template_sel_items,
-            input_variables=["stat_line"],
-            partial_variables={"format_instructions": parser_sel_items.get_format_instructions()})
+            partial_variables={
+                "format_instructions": parser_sel_items.get_format_instructions(),
+                "indicators": ", ".join(self.calculus_col),
+            }
+        )
 
         prompt_tweet_only_stats = PromptTemplate.from_template(prompt_template_tweet_only_stats)
         prompt_tweet_with_analog = PromptTemplate.from_template(prompt_template_tweet_with_analog)
@@ -203,7 +205,14 @@ class AnomalyCalculation:
             return result
 
         def _run_chains(inputs):
-            sel_items = chain_sel_items.invoke(inputs)
+            sel_items_from_llm = chain_sel_items.invoke(inputs)
+            sel_items = []
+            for si in sel_items_from_llm.selected_items:
+                if si.item_name in self.calculus_col:
+                    sel_items.append(si)
+                else:
+                    print(f"Erroneous selected item: {si}")
+            sel_items = SelectedItems(selected_items=sel_items)
             args = {
                 "sel_items": sel_items,  # список статов, которые выбрала модель
                 "player_name": inputs["player_name"],
@@ -217,13 +226,17 @@ class AnomalyCalculation:
                 return chain_stats_only.invoke(args), TweetType.ANOMALY_UNIQUE
 
         tweets = []
-        for _player_name, _team_name, _stat_line in anomaly_stats:
+        for _, row in anomaly_stats.iterrows():
             tweet_text, tweet_type = _run_chains(
-                inputs={"stat_line": _stat_line, "player_name": _player_name, "team_name": _team_name}
+                inputs={
+                    "stat_line": row['_stat_line'],
+                    "player_name": row['PLAYER_NAME'],
+                    "team_name": row['TEAM_ABBREVIATION']
+                }
             )
             tweets.append(Tweet(
-                player_id=None,
-                game_id=None,
+                player_ids=[row['PLAYER_ID']],
+                game_ids=[row['GAME_ID_STR']],
                 tweet_text=tweet_text,
                 tweet_type=tweet_type
             ))

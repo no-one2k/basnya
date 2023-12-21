@@ -49,6 +49,32 @@ def min_to_second(string: str) -> int:
         return 0
 
 
+def str_min_to_float_min(string: str) -> float:
+    """
+    Перевеод формата времени матча в минуты
+
+    Аргументы:
+        string: str - формат времени матча
+    Возвращает:
+        время в минутах (float)
+    """
+
+    if isinstance(string, str):
+        pattern = r"(\d+)\.(\d+):(\d+)"
+
+        match = re.match(pattern, string)
+        if match:
+            minutes = int(match.group(1))
+            seconds = int(match.group(3)) / 60
+            return minutes + seconds
+    elif isinstance(string, int):
+        return string
+    elif isinstance(string, float):
+        return string
+    else:
+        return 0
+
+
 def get_completion(prompt, model):
     """
     Получить ответ модели Openai
@@ -70,8 +96,8 @@ class TweetType(Enum):
 
 
 class Tweet(BaseModel):
-    game_id: Optional[str]
-    player_id: Optional[int]
+    game_ids: List[str]
+    player_ids: List[int]
     tweet_text: str
     tweet_type: TweetType
 
@@ -131,9 +157,11 @@ class StatsHolder:
         """
         with sqlite3.connect(self.db_path) as conn:
             return (
-                pd.read_sql_query(f"SELECT PERSON_ID, DISPLAY_FIRST_LAST, COUNTRY  FROM 'player_0'", conn)
+                pd.read_sql_query("""
+                SELECT PERSON_ID, PERSON_ID as PLAYER_ID, DISPLAY_FIRST_LAST as NAME, COUNTRY  
+                FROM 'player_0'""",
+                                  conn)
                 .set_index('PERSON_ID')
-                .rename(columns={'DISPLAY_FIRST_LAST': 'NAME'})
                 .to_dict(orient='index')
             )
 
@@ -162,11 +190,13 @@ class StatsHolder:
                 sql="""SELECT bs.* 
                 FROM boxscoretraditionalv2_0 as bs
                 LEFT JOIN games as g on bs.GAME_ID = g.GAME_ID
-                WHERE g.SEASON = (SELECT max(t.SEASON) FROM games as t)""",
+                WHERE g.SEASON = (SELECT max(t.SEASON) FROM games as t)
+                AND g.season_type > 1""",
                 con=conn
             )
+        df.drop_duplicates(subset=['PLAYER_ID', 'GAME_ID'], inplace=True)
         df.dropna(subset='MIN', inplace=True)
-        df['MIN'] = df['MIN'].apply(min_to_second)
+        df['MIN'] = df['MIN'].apply(str_min_to_float_min)
 
         if len(df) == 0:
             players_stats = defaultdict(list)
@@ -193,7 +223,7 @@ class StatsHolder:
         """
 
         player_stats = deepcopy(player_stats)
-        record.loc[:, 'MIN'] = record['MIN'].apply(min_to_second).fillna(0).astype(int)
+        record.loc[:, 'MIN'] = record['MIN'].apply(str_min_to_float_min).fillna(0).astype(float)
 
         for _, row in record[self.target_columns].iterrows():
             player_id = row.PLAYER_ID
@@ -232,22 +262,51 @@ class StatsHolder:
         return answer
 
     def get_tweets(self, selected_game_ids: List[str]) -> List[Tweet]:
+        def split_rating_change(rating_change):
+            split = []
+            for _result in rating_change['result']:
+                top_n = _result['description']
+                in_top = _result['values']['in_top']
+                out_top = _result['values']['out_top']
+                for indicator, in_players in in_top.items():
+                    rating_name = f"Season {top_n} by {indicator}"
+                    out_players = out_top.get(indicator, [])
+                    split.append({
+                        'rating_name': rating_name,
+                        'in_top': in_players,
+                        'out_top': out_players,
+                    })
+            return split
+
+        def make_rating_chain():
+            model_creative = OpenAI(temperature=0.2, model=DEFAULT_GPT_MODEL)
+            prompt_in_out_rating = PromptTemplate.from_template(self.prompt_template)
+            chain_in_out_rating = (
+                    {
+                        'rating_name': RunnablePassthrough(),
+                        'in_top': RunnablePassthrough(),
+                        'out_top': RunnablePassthrough(),
+                    }
+                    | prompt_in_out_rating
+                    | model_creative
+            )
+
+            def _invoke(rating_name, in_top, out_top):
+                return chain_in_out_rating.invoke({'rating_name': rating_name, 'in_top': in_top, 'out_top': out_top})
+
+            return _invoke
         strategies_result = self.run_strategies(selected_game_ids)
+        split_rating = split_rating_change(strategies_result)
 
         logger.info('Tweeting ...')
-        model_creative = OpenAI(temperature=0.2, model=DEFAULT_GPT_MODEL)
-        prompt_in_out_rating = PromptTemplate.from_template(self.prompt_template)
-        chain_in_out_rating = (
-            {'stat_players': RunnablePassthrough()}
-            | prompt_in_out_rating
-            | model_creative
-        )
+        _gen_tweet = make_rating_chain()
         tweets = []
-        for stat_players in strategies_result['result']:
-            tweet_text = chain_in_out_rating.invoke({'stat_players': stat_players})
+        for rating_change in split_rating:
+            tweet_text = _gen_tweet(**rating_change)
+            involved_players = [d['PLAYER_ID'] for d in rating_change['in_top'] + rating_change['out_top']]
             tweets.append(Tweet(
-                player_id=None,
-                game_id=None,
+                player_ids=involved_players,
+                game_ids=selected_game_ids[:],
                 tweet_text=tweet_text,
                 tweet_type=TweetType.RATING_CHANGE_SEASON_SUM
             ))

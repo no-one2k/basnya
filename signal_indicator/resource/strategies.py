@@ -52,7 +52,7 @@ def _calculate_rating(players_stats: dict) -> Dict[str, pd.DataFrame]:
         .to_frame()
         .reset_index()
         .rename(columns={col: 'VALUE'})
-        .assign(RATING=range(len(df_all[col])))
+        .assign(RATING=range(1, len(df_all[col]) + 1))
     ) for col in df_all.columns}
 
     return ratings
@@ -99,6 +99,15 @@ class StrategyRating(Strategy):
         old_rating = _calculate_rating(old_stats)
         new_rating = _calculate_rating(new_stats)
 
+        old_player_to_rank = {indicator: value.set_index('PLAYER_ID').RATING.to_dict()
+                              for indicator, value in old_rating.items()}
+        new_player_to_rank = {indicator: value.set_index('PLAYER_ID').RATING.to_dict()
+                              for indicator, value in new_rating.items()}
+        old_player_to_value = {indicator: value.set_index('PLAYER_ID').VALUE.to_dict()
+                               for indicator, value in old_rating.items()}
+        new_player_to_value = {indicator: value.set_index('PLAYER_ID').VALUE.to_dict()
+                               for indicator, value in new_rating.items()}
+
         # получим N лучших игроков
         old_rating_top = {indicator: value.iloc[:top] for indicator, value in old_rating.items()}
         new_rating_top = {indicator: value.iloc[:top] for indicator, value in new_rating.items()}
@@ -106,16 +115,21 @@ class StrategyRating(Strategy):
         old_top = {col: set(old_rating_top[col]['PLAYER_ID'].to_list()) for col in old_rating_top.keys()}
         new_top = {col: set(new_rating_top[col]['PLAYER_ID'].to_list()) for col in new_rating_top.keys()}
 
-        for col in self.calculus_columns:
-            if self.player_id_to_name_dict:  # если передали словарь
-                in_top = [self.player_id_to_name_dict.get(player_id, '<UNKNOWN>')
-                          for player_id in list(new_top[col] - old_top[col])]
-                out_top = [self.player_id_to_name_dict.get(player_id, '<UNKNOWN>')
-                           for player_id in list(old_top[col] - new_top[col])]
+        def enrich_player_id(_indicator, _player_id):
+            dummy_player = {'PLAYER_ID': _player_id, 'NAME': '<UNKNOWN>', 'COUNTRY': '<UNKNOWN>'}
+            if self.player_id_to_name_dict:
+                _result = {k: v for k, v in self.player_id_to_name_dict.get(_player_id, dummy_player).items()}
             else:
-                in_top = list(new_top[col] - old_top[col])
-                out_top = list(old_top[col] - new_top[col])
+                _result = dummy_player
+            _result['old_value'] = old_player_to_value.get(_indicator, {}).get(_player_id, '<UNKNOWN>')
+            _result['new_value'] = new_player_to_value.get(_indicator, {}).get(_player_id, '<UNKNOWN>')
+            _result['old_rating'] = old_player_to_rank.get(_indicator, {}).get(_player_id, '<UNKNOWN>')
+            _result['new_rating'] = new_player_to_rank.get(_indicator, {}).get(_player_id, '<UNKNOWN>')
+            return _result
 
+        for col in self.calculus_columns:
+            in_top = [enrich_player_id(col, _id) for _id in new_top[col] - old_top[col]]
+            out_top = [enrich_player_id(col, _id) for _id in old_top[col] - new_top[col]]
             if in_top:
                 result['in_top'][col] = in_top
             if out_top:
