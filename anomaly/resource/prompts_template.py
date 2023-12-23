@@ -20,6 +20,23 @@ You are given the data:
 - Team: {team_name}
 - Player's stats line: {sel_items}
 
+Stats descriptions:
+- MIN = Minutes played
+- FGM = Field goals made
+- FGA = Field goals attempted
+- FG3M = Three-pointers made
+- FG3A = Three-pointers attempted
+- FTM = Free throws made
+- FTA = Free throws attempted
+- REB = Total rebounds
+- AST = Assists
+- STL = Steals
+- BLK = Blocks
+- TO = Turnovers
+- PF = Personal fouls
+- PTS = Points scored
+- PLUS_MINUS = Point differential
+
 Player's stats line consists of several stat categories with its values and is sorted by descending of importance of a category 
 Your task is to write twitter-styled message to describe players performance in single game:
 1) Use only categories ad values from Player's stats line.
@@ -35,6 +52,23 @@ You are given the data:
 - Team: {team_name}
 - Player's stats line: {sel_items}
 - Player who had similar performance before: {sim_dict}
+
+Stats descriptions:
+- MIN = Minutes played
+- FGM = Field goals made
+- FGA = Field goals attempted
+- FG3M = Three-pointers made
+- FG3A = Three-pointers attempted
+- FTM = Free throws made
+- FTA = Free throws attempted
+- REB = Total rebounds
+- AST = Assists
+- STL = Steals
+- BLK = Blocks
+- TO = Turnovers
+- PF = Personal fouls
+- PTS = Points scored
+- PLUS_MINUS = Point differential
 
 Player's stats line consists of several stat categories with its values and is sorted by descending of importance of a category 
 

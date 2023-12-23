@@ -6,15 +6,53 @@ from typing import List, Tuple
 
 import pandas as pd
 from nba_api.stats.endpoints import leaguegamefinder, boxscoresummaryv2, boxscoretraditionalv2, commonplayerinfo
-from prefect import task, flow, get_run_logger
+from prefect import task, flow
 from git import Repo
 
 
 DEFAULT_GAMES_COLUMNS = ['unseen_game', 'game_id', 'game_date', 'teams', 'score']
-# logger = get_run_logger()
 
 
-def get_all_ids_from_db(db_path: str) -> List:
+def get_idx_game_for_date_from_db(db_path: str, date: dt.date) -> List[str]:
+    """
+    Get game indices for the specified date
+    
+    Parameters:
+        - db_path (str): The path to the SQLite database file.
+        - date (dt.date): date for which you need to find id
+    Returns:
+        - list ids
+    """
+    
+    conn = sqlite3.connect(db_path)
+    cur = conn.cursor()
+    cur.execute("SELECT DISTINCT GAME_ID FROM GAMES WHERE GAME_DATE_EST=?", (date.strftime('%Y-%m-%dT%H:%M:%S'),))
+    rows = cur.fetchall()
+    game_ids = []
+    for row in rows:
+        game_ids.append(row[0])
+    conn.close()
+    
+    return list(map(str, game_ids))
+
+
+def get_all_person_id_from_db(db_path: str) -> List:
+    """
+    Get all player ids in DB
+    
+    Parameters:
+        - db_path (str): The path to the SQLite database file.
+
+    Returns:
+    - list player ids
+    """
+    sql_query =  "SELECT PERSON_ID  FROM player_0"
+    with sqlite3.connect(db_path) as connection:
+        # Use pandas to execute the SQL query and read the results into a DataFrame
+        player_ids_in_db = pd.read_sql(sql_query, connection).PERSON_ID.to_list()
+    return player_ids_in_db
+
+def get_all_game_ids_from_db(db_path: str) -> List:
     """
     Get all idxs in DB
     
@@ -24,14 +62,42 @@ def get_all_ids_from_db(db_path: str) -> List:
     Returns:
     - list ids
     """
+    
     sql_query =  "SELECT GAME_ID  FROM games"
     with sqlite3.connect(db_path) as connection:
         # Use pandas to execute the SQL query and read the results into a DataFrame
         idx_game_in_db = pd.read_sql(sql_query, connection).GAME_ID.to_list()
     return idx_game_in_db
+
+
     
+    
+@task(log_prints=True)
+def check_data_in_database(db_path: str, date: dt.date) -> bool:
+    """
+    Check availability of data at the date in the database. If data is available - DO NOT contact NBA api
+    
+    Parameters:
+    - db_path (str): The path to the SQLite database file.
 
-
+    Returns:
+    - True if data availability  in DB else False
+    """
+    
+    sql_query = """SELECT MAX(GAME_DATE_EST) FROM GAMES"""
+    with sqlite3.connect(db_path) as connection:
+        # Use pandas to execute the SQL query and read the results into a DataFrame
+        last_date = pd.read_sql(sql_query, connection).values[0][0]
+        last_date = datetime.datetime.strptime(last_date, '%Y-%m-%dT%H:%M:%S').date()
+        
+    if  last_date >= date:# - datetime.timedelta(days=1):
+        print('last_date in DB', last_date)
+        print('date', date)
+        print('Data for this date is already in the database')
+        return True 
+    
+    print('Data for this date is not in the database')
+    return False    
 
 
 @task(log_prints=True)
@@ -262,7 +328,7 @@ def prepare_games_to_append(game_ids_to_append, db_path) -> List[Tuple[str, pd.D
         
         
         # check idx drom db
-        idx_db = get_all_ids_from_db(db_path)
+        idx_db = get_all_game_ids_from_db(db_path)
         games_df = games_df[~games_df['GAME_ID'].isin(idx_db)]
    
     else:
@@ -273,13 +339,14 @@ def prepare_games_to_append(game_ids_to_append, db_path) -> List[Tuple[str, pd.D
 @task(retries=2, log_prints=True)
 def prepare_players_to_append(
         current_players: pd.DataFrame,
-        games_dataframe_list: List[Tuple[str, pd.DataFrame]]) -> List[Tuple[str, pd.DataFrame]]:
+        games_dataframe_list: List[Tuple[str, pd.DataFrame]], db_path:str) -> List[Tuple[str, pd.DataFrame]]:
     """
     Prepare player DataFrames to append to the database.
 
     Parameters:
     - current_players (pd.DataFrame): DataFrame of current players in the database.
     - games_dataframe_dict (Dict[str, pd.DataFrame]): Dictionary of NBA games DataFrames.
+    - db_path: path to DB
 
     Returns:
     - Dict[str, pd.DataFrame]: Dictionary of player DataFrames prepared for appending to the database.
@@ -290,9 +357,10 @@ def prepare_players_to_append(
             if k == 'boxscoretraditionalv2_0':
                 return _games_df
         return pd.DataFrame({'PLAYER_ID': []})
-
+    
+    player_ids_in_db = get_all_person_id_from_db(db_path) # all player ids in db
     players_from_games = _get_games_df()
-    players_to_append = set(players_from_games.PLAYER_ID) - set(current_players.PERSON_ID)
+    players_to_append = set(players_from_games.PLAYER_ID) - set(current_players.PERSON_ID) - set(player_ids_in_db)
     if players_to_append:
         print(f"need to append players: {len(players_to_append)}")
         result = defaultdict(list)
@@ -307,56 +375,66 @@ def prepare_players_to_append(
 
 
 @task(retries=2, log_prints=True)
-def append_tables(db_path: str, dataframe_list: List[Tuple[str, pd.DataFrame]]):
+def append_tables(db_path: str, token_git: str, dataframe_list: List[Tuple[str, pd.DataFrame]]) -> bool:
     """
    Append DataFrames to SQLite database tables.
 
    Parameters:
    - db_path (str): The path to the SQLite database file.
    - dataframe_dict (Dict[str, pd.DataFrame]): Dictionary of DataFrames to append to the database.
+   - token_git (str): git access token
 
    Returns:
-   - None
+   - True if DB was modified
    """
-
+    updated_db = False
     with sqlite3.connect(db_path) as connection:
-        
-        update_db = False
+ 
         for table_name, _df in dataframe_list:
             print(f"writing {len(_df)} records to {table_name}")
             if len(_df) > 0:
-                update_db = True
-                _df.to_sql(table_name, con=connection, if_exists='append', index=False)
-                
-        if update_db:
-                # added db in repo
-                repo = Repo('.git')
-                repo.git.checkout('streamlit_app')
-                repo.index.add([db_path])
-                repo.index.commit('add file basnya.db')
-                remote_url = 'https://github.com/no-one2k/basnya.git'
-                remotes = repo.remotes
-                if all(remote.name != 'origin' for remote in remotes):
-                    origin = repo.create_remote('origin', remote_url)
-            
-                origin = repo.remote(name='origin')
-                origin.push()
-                print('DB basnya push in repo')
-        else:
-            print(f'Data already available in basnya.db')
+                try:
+                    _df.to_sql(table_name, con=connection, if_exists='append', index=False)
+                    updated_db = True
+                except Exception as e:
+                    print(e)
+                    print(table_name)
+    return updated_db
 
-                    
 
-    return
+@task(retries=2, log_prints=True)
+def push_db(db_path: str, token_git: str) -> None:
+    """
+    Push db in repo
+    
+    Parameters:
+        - db_path (str): The path to the SQLite database file
+        - token_git (str): git access token
+    """
+    # added db in repo
+    
+    repo = Repo('.git')
+    repo.git.checkout('streamlit_app')
+    repo.index.add([db_path])
+    repo.index.commit('add file basnya.db')
+    remote_url = 'https://github.com/no-one2k/basnya.git'
+    remotes = repo.remotes
+    if all(remote.name != 'origin' for remote in remotes):
+        origin = repo.create_remote('origin', remote_url)
 
+    origin = repo.remote(name='origin')
+    origin.push(auth=("token", token_git))
+    print('DB basnya push in repo')
+ 
 
 @flow(log_prints=True)
-def back_fill_games(game_ids: List[str], db_path: str) -> List[Tuple[str, pd.DataFrame]]:
+def back_fill_games(game_ids: List[str], db_path: str, token_git:str) -> List[Tuple[str, pd.DataFrame]]:
     """
     Back-fill NBA game and player information into the database.
 
     Parameters:
     - game_ids (List[str]): List of NBA game IDs to back-fill.
+    - git_token (str): git access token
 
     Returns:
     - Dict[str, pd.DataFrame]: Dictionary of DataFrames containing back-filled game and player information.
@@ -372,16 +450,21 @@ def back_fill_games(game_ids: List[str], db_path: str) -> List[Tuple[str, pd.Dat
         game_ids=game_ids
     )
     games_to_append_list = prepare_games_to_append(game_ids_to_append, db_path)
+    
     players_to_append_list = prepare_players_to_append(
         current_players=current_players,
-        games_dataframe_list=games_to_append_list
+        games_dataframe_list=games_to_append_list,
+        db_path=db_path
     )
 
     tables_to_append = players_to_append_list + games_to_append_list  # insert players first
-    append_tables(
+    db_was_updated = append_tables(
         db_path=db_path,
+        token_git=token_git,
         dataframe_list=tables_to_append
     )
+    if db_was_updated:
+        push_db(db_path=db_path, token_git=token_git)
 
     return tables_to_append
 
@@ -435,14 +518,15 @@ def split_games_dfs(
                 added_game_ids = set(added_games_df.GAME_ID_STR)
 
     existed_game_ids = [g for g in game_ids if g not in added_game_ids]
+    print('existed_game_ids', existed_game_ids)
     if existed_game_ids:
         with sqlite3.connect(db_path) as connection:
             select_query = f"""
             SELECT *
             FROM "boxscoresummaryv2_5"
-            WHERE "GAME_ID_STR" IN ({', '.join(['?' for _ in existed_game_ids])});
+            WHERE "GAME_ID" IN ({', '.join([_ for _ in existed_game_ids])})
             """
-            existed_games_df = pd.read_sql(select_query, connection, params=existed_game_ids)
+            existed_games_df = pd.read_sql(select_query, connection)#, params=existed_game_ids)
     else:
         existed_games_df = pd.DataFrame()
 
@@ -479,18 +563,24 @@ def prepare_game_df(on_date_game_df: pd.DataFrame) -> pd.DataFrame:
 
 
 @flow(log_prints=True)
-def fetch_games_for_date(date: dt.date) -> pd.DataFrame:
+def fetch_games_for_date(date: dt.date, token_git:str) -> pd.DataFrame:
     """
     1) finds games on 'date' date
     2) finds what games and players need to be added to DB
     3) uploads it to DB
     return: pd.Dataframe with 'date' games and additional column 'unseen_game'
     """
-    db_path = get_db_path()
-    game_ids = get_game_ids_for_date(date=date)
-
     
-    back_filled_dfs = back_fill_games(game_ids=game_ids, db_path=db_path)
+    db_path = get_db_path()
+    data_in_db = check_data_in_database(db_path=db_path, date=date)
+    
+    if data_in_db:
+        game_ids = get_idx_game_for_date_from_db(db_path, date)
+        back_filled_dfs = {}
+    else:
+        game_ids = get_game_ids_for_date(date=date)
+        back_filled_dfs = back_fill_games(game_ids=game_ids, db_path=db_path, token_git=token_git)
+        
     on_date_games_df = (
         split_games_dfs(
             game_ids=game_ids,
@@ -498,8 +588,11 @@ def fetch_games_for_date(date: dt.date) -> pd.DataFrame:
             db_path=db_path
         )
     )
+    # print(on_date_games_df)
     return prepare_game_df(on_date_games_df)
 
 
 if __name__ == "__main__":
     fetch_games_for_date.serve(name="back-fill-games-deployment")
+
+
