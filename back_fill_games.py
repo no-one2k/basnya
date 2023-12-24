@@ -464,7 +464,8 @@ def back_fill_games(game_ids: List[str], db_path: str, token_git:str) -> List[Tu
         dataframe_list=tables_to_append
     )
     if db_was_updated:
-        push_db(db_path=db_path, token_git=token_git)
+        pass
+        # push_db(db_path=db_path, token_git=token_git)
 
     return tables_to_append
 
