@@ -117,9 +117,11 @@ def remove_records(
     if isinstance(game_ids_to_remove, int):
         game_ids_to_remove = [game_ids_to_remove]
 
+    min_game_id = min(game_ids_to_remove)
+
     for player_id in result_stats.keys():
         result_stats[player_id] = [game for game in result_stats[player_id]
-                                   if game['GAME_ID'] not in game_ids_to_remove]
+                                   if (game['GAME_ID'] not in game_ids_to_remove) and (game['GAME_ID'] < min_game_id)]
     return result_stats
 
 

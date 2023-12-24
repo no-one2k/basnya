@@ -87,6 +87,9 @@ def check_password():
 
 def on_get_games():
     _date = st.session_state['date']
+    if (_date < get_min_allowed_date()) or (_date > get_max_allowed_date()):
+        st.info(f"Select date from {get_min_allowed_date()} to {get_max_allowed_date()}.")
+        return
     _token_git = st.secrets['TOKEN_GIT']
     df_games_for_date = fetch_games_for_date(_date, _token_git)
     st.session_state["run_for_date"] = _date
@@ -126,8 +129,8 @@ def add_app_logic():
     _date = st.date_input(
         label="enter date",
         value=dt.date.today() - dt.timedelta(days=1),
-        min_value=dt.date(2020, 1, 1),
-        max_value=dt.date.today(),
+        min_value=get_min_allowed_date(),
+        max_value=get_max_allowed_date(),
         format='DD.MM.YYYY',
         key="date"
     )
@@ -149,8 +152,16 @@ def add_app_logic():
     with container_with_tweets:
         st.button("Generate tweets", key='btn_generat', on_click=get_form_for_tweet, 
                   args=(container_with_tweets,))
-    
-        
+
+
+def get_max_allowed_date():
+    return dt.date.today()
+
+
+def get_min_allowed_date():
+    return dt.date.today() - dt.timedelta(days=30)
+
+
 def main():
     if not check_password():
         st.stop()  # Do not continue if check_password is not True.
