@@ -1,3 +1,5 @@
+Статья написана в рамках курса https://ods.ai/tracks/ml-system-design-23 и опубликована здась - https://telegra.ph/USearch---bystraya-vektornaya-BD-12-30
+
 # USearch - быстрая векторная БД
 
 ## Описание
@@ -68,6 +70,7 @@ matches = index.search(_emb768_search, count=5)
 df.loc[np.unique(matches.keys)]
 ```
 
+Полный пример - https://github.com/no-one2k/basnya/blob/ba4e8c52b418cee034faff20653137bbbfa14c9f/discovery/tools/usearch/usearch_example.ipynb
 
 ## Полезные ссылки
 
