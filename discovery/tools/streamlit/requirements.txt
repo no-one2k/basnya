@@ -1,4 +1,0 @@
-nba_api==1.4.1
-pandas==1.5.3
-prefect==2.14.5
-streamlit==1.28.2

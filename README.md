@@ -1,20 +1,17 @@
-# Проект для курса "ML System Design. Autumn 23/24"
+## General info
+**Title:** BASNya - Basketball Auto-generated Statistical News
 
-## Общая информация
-**Название:** BASNya - Basketball Auto-generated Statistical News
+**Main idea:** make use of basketball statistics to generate tweets
 
-**Суть:** генерировать контент на основе баскетбольной статистики
+**Team:**
+- Aleksei
+- Bogdan
+- Boris
 
-**Команда:**
-- Алексей
-- Богдан
-- Борис
+The project was completed as part of the course ["ML System Design. Autumn 23/24"](https://ods.ai/tracks/ml-system-design-23).
 
-## Структура репозитория
+## Repo structure
 
-* designdoc - всё что, связано с дизайн документом на будущую мл-систему: сам документ, шаблон, инструкция по заполнению
-* data - данные, в первую очередь сырые данные с портала stats.nba
-* scripts - one-time code 
-* discovery - промежуточные результаты и эксперименты фазы исследования
-  * tools - исследования инструментов, которые могут пригодиться при реализации
-* delivery и MVP - фаза реализации системы
+* folder `designdoc` - ML system design documentation 
+* branch `discovery` - discovery stage: intermediate results, researches and experiments
+* branch `streamlit_app` - final app code 
