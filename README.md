@@ -3,6 +3,17 @@
 
 **Main idea:** make use of basketball statistics to generate tweets
 
+### How it works
+
+1. User selects the date of games to be analyzed
+![basnya_screenshot_1.png](images%2Fbasnya_screenshot_1.png)
+2. For this date and previous dates of the current NBA season all missing games boxscores are downloaded.
+3. User selects interesting games
+![basnya_screenshot_2.png](images%2Fbasnya_screenshot_2.png)
+4. Players individual statstics anomaly are detected from selected games
+5. Each anomaly works as source for LLM to generate a tweet 
+![basnya_screenshot_3.png](images%2Fbasnya_screenshot_3.png)
+
 ### Features
 
 - **On-demand Data Retrieval:** The project fetches latest basketball statistics using the nba_api package, ensuring the generated tweets are based on the latest game data.
